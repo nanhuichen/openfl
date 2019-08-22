@@ -2,7 +2,6 @@ package openfl._internal.renderer.cairo;
 
 import openfl._internal.text.TextEngine;
 import openfl.display.BitmapData;
-import openfl.display.CairoRenderer;
 import openfl.display.Graphics;
 import openfl.geom.Matrix;
 import openfl.geom.Rectangle;
@@ -80,9 +79,7 @@ class CairoTextField
 
 		if (width <= 0
 			|| height <= 0
-			|| (!textField.__dirty
-				&& !graphics.__softwareDirty
-				&& (!graphics.__visible || graphics.__bitmap != null))
+			|| (!textField.__dirty && !graphics.__softwareDirty && (!graphics.__visible || graphics.__bitmap != null))
 			|| !renderable)
 		{
 			textField.__dirty = false;
@@ -195,7 +192,7 @@ class CairoTextField
 			for (group in textEngine.layoutGroups)
 			{
 				if (group.lineIndex < textField.scrollV - 1) continue;
-				if (group.lineIndex > textField.scrollV + textEngine.bottomScrollV - 2) break;
+				if (group.lineIndex > textEngine.bottomScrollV - 1) break;
 
 				color = group.format.color;
 				r = ((color & 0xFF0000) >>> 16) / 0xFF;
@@ -276,8 +273,14 @@ class CairoTextField
 
 								cairo.moveTo(Math.floor(group.offsetX + advance) + 0.5 - textField.scrollH - bounds.x, scrollY + 2.5 - bounds.y);
 								cairo.lineWidth = 1;
-								cairo.lineTo(Math.floor(group.offsetX + advance) + 0.5 - textField.scrollH - bounds.x,
-									scrollY + TextEngine.getFormatHeight(textField.defaultTextFormat) - 1 - bounds.y);
+								cairo.lineTo(Math.floor(group.offsetX + advance)
+									+ 0.5
+									- textField.scrollH
+									- bounds.x,
+									scrollY
+									+ TextEngine.getFormatHeight(textField.defaultTextFormat)
+									- 1
+									- bounds.y);
 								cairo.stroke();
 							}
 						}
@@ -303,9 +306,9 @@ class CairoTextField
 
 							start = textField.getCharBoundaries(selectionStart);
 
-							if (selectionEnd >= textEngine.text.length)
+							if (selectionEnd >= group.endIndex)
 							{
-								end = textField.getCharBoundaries(textEngine.text.length - 1);
+								end = textField.getCharBoundaries(group.endIndex - 1);
 								end.x += end.width + 2;
 							}
 							else

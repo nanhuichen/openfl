@@ -14,6 +14,7 @@ import openfl._internal.symbols.SWFSymbol;
 import openfl._internal.symbols.timeline.Frame;
 import openfl._internal.symbols.timeline.FrameObject;
 import openfl._internal.symbols.timeline.FrameObjectType;
+import openfl._internal.utils.ITimeline;
 import openfl._internal.utils.Log;
 import openfl.errors.ArgumentError;
 import openfl.events.Event;
@@ -74,6 +75,7 @@ import hscript.Parser;
 @:access(openfl.geom.ColorTransform)
 class MovieClip extends Sprite #if (openfl_dynamic && haxe_ver < "4.0.0") implements Dynamic<DisplayObject> #end
 {
+	@:noCompletion private static var __constructor:MovieClip->Void;
 	@:noCompletion private static var __initSWF:SWFLite;
 	@:noCompletion private static var __initSymbol:SpriteSymbol;
 	#if openfljs
@@ -149,7 +151,9 @@ class MovieClip extends Sprite #if (openfl_dynamic && haxe_ver < "4.0.0") implem
 		_all_ scenes in the movie clip.
 	**/
 	public var framesLoaded(get, never):Int;
+
 	public var isPlaying(get, never):Bool;
+
 	// @:noCompletion @:dox(hide) public var scenes (default, never):Array<openfl.display.Scene>;
 
 	/**
@@ -182,6 +186,7 @@ class MovieClip extends Sprite #if (openfl_dynamic && haxe_ver < "4.0.0") implem
 	@:noCompletion private var __swf:SWFLite;
 	@:noCompletion private var __symbol:SpriteSymbol;
 	@:noCompletion private var __timeElapsed:Int;
+	@:noCompletion private var __timeline:ITimeline;
 	@:noCompletion private var __totalFrames:Int;
 
 	#if openfljs
@@ -192,17 +197,19 @@ class MovieClip extends Sprite #if (openfl_dynamic && haxe_ver < "4.0.0") implem
 		__useParentFPS = false;
 		untyped __js__("/// #endif");
 
-		untyped Object.defineProperties(MovieClip.prototype,
-			{
-				"currentFrame": {get: untyped __js__("function () { return this.get_currentFrame (); }")},
-				"currentFrameLabel": {get: untyped __js__("function () { return this.get_currentFrameLabel (); }")},
-				"currentLabel": {get: untyped __js__("function () { return this.get_currentLabel (); }")},
-				"currentLabels": {get: untyped __js__("function () { return this.get_currentLabels (); }")},
-				"enabled": {get: untyped __js__("function () { return this.get_enabled (); }"), set: untyped __js__("function (v) { return this.set_enabled (v); }")},
-				"framesLoaded": {get: untyped __js__("function () { return this.get_framesLoaded (); }")},
-				"isPlaying": {get: untyped __js__("function () { return this.get_isPlaying (); }")},
-				"totalFrames": {get: untyped __js__("function () { return this.get_totalFrames (); }")},
-			});
+		untyped Object.defineProperties(MovieClip.prototype, {
+			"currentFrame": {get: untyped __js__("function () { return this.get_currentFrame (); }")},
+			"currentFrameLabel": {get: untyped __js__("function () { return this.get_currentFrameLabel (); }")},
+			"currentLabel": {get: untyped __js__("function () { return this.get_currentLabel (); }")},
+			"currentLabels": {get: untyped __js__("function () { return this.get_currentLabels (); }")},
+			"enabled": {
+				get: untyped __js__("function () { return this.get_enabled (); }"),
+				set: untyped __js__("function (v) { return this.set_enabled (v); }")
+			},
+			"framesLoaded": {get: untyped __js__("function () { return this.get_framesLoaded (); }")},
+			"isPlaying": {get: untyped __js__("function () { return this.get_isPlaying (); }")},
+			"totalFrames": {get: untyped __js__("function () { return this.get_totalFrames (); }")},
+		});
 	}
 	#end
 
@@ -221,7 +228,14 @@ class MovieClip extends Sprite #if (openfl_dynamic && haxe_ver < "4.0.0") implem
 		__totalFrames = 0;
 		__enabled = true;
 
-		if (__initSymbol != null)
+		if (__constructor != null)
+		{
+			var method = __constructor;
+			__constructor = null;
+
+			method(this);
+		}
+		else if (__initSymbol != null)
 		{
 			__swf = __initSWF;
 			__symbol = __initSymbol;
@@ -236,20 +250,28 @@ class MovieClip extends Sprite #if (openfl_dynamic && haxe_ver < "4.0.0") implem
 	public function addFrameScript(index:Int, method:Void->Void):Void
 	{
 		if (index < 0) return;
-		var frame = index + 1;
 
-		if (method != null)
+		if (__timeline != null)
 		{
-			if (__frameScripts == null)
-			{
-				__frameScripts = new Map();
-			}
-
-			__frameScripts.set(frame, method);
+			__timeline.addFrameScript(index, method);
 		}
-		else if (__frameScripts != null)
+		else
 		{
-			__frameScripts.remove(frame);
+			var frame = index + 1;
+
+			if (method != null)
+			{
+				if (__frameScripts == null)
+				{
+					__frameScripts = new Map();
+				}
+
+				__frameScripts.set(frame, method);
+			}
+			else if (__frameScripts != null)
+			{
+				__frameScripts.remove(frame);
+			}
 		}
 	}
 
@@ -269,8 +291,15 @@ class MovieClip extends Sprite #if (openfl_dynamic && haxe_ver < "4.0.0") implem
 	**/
 	public function gotoAndPlay(frame:#if (haxe_ver >= "3.4.2") Any #else Dynamic #end, scene:String = null):Void
 	{
-		play();
-		__goto(__resolveFrameReference(frame));
+		if (__timeline != null)
+		{
+			__timeline.gotoAndPlay(frame, scene);
+		}
+		else
+		{
+			play();
+			__goto(__resolveFrameReference(frame));
+		}
 	}
 
 	/**
@@ -292,8 +321,15 @@ class MovieClip extends Sprite #if (openfl_dynamic && haxe_ver < "4.0.0") implem
 	**/
 	public function gotoAndStop(frame:#if (haxe_ver >= "3.4.2") Any #else Dynamic #end, scene:String = null):Void
 	{
-		stop();
-		__goto(__resolveFrameReference(frame));
+		if (__timeline != null)
+		{
+			__timeline.gotoAndStop(frame, scene);
+		}
+		else
+		{
+			stop();
+			__goto(__resolveFrameReference(frame));
+		}
 	}
 
 	/**
@@ -303,8 +339,15 @@ class MovieClip extends Sprite #if (openfl_dynamic && haxe_ver < "4.0.0") implem
 	**/
 	public function nextFrame():Void
 	{
-		stop();
-		__goto(__currentFrame + 1);
+		if (__timeline != null)
+		{
+			__timeline.nextFrame();
+		}
+		else
+		{
+			stop();
+			__goto(__currentFrame + 1);
+		}
 	}
 
 	// @:noCompletion @:dox(hide) public function nextScene ():Void;
@@ -315,14 +358,21 @@ class MovieClip extends Sprite #if (openfl_dynamic && haxe_ver < "4.0.0") implem
 	**/
 	public function play():Void
 	{
-		if (__symbol == null || __playing || __totalFrames < 2) return;
-
-		__playing = true;
-
-		if (!__useParentFPS)
+		if (__timeline != null)
 		{
-			__frameTime = Std.int(1000 / __swf.frameRate);
-			__timeElapsed = 0;
+			__timeline.play();
+		}
+		else
+		{
+			if (__symbol == null || __playing || __totalFrames < 2) return;
+
+			__playing = true;
+
+			if (!__useParentFPS)
+			{
+				__frameTime = Std.int(1000 / __swf.frameRate);
+				__timeElapsed = 0;
+			}
 		}
 	}
 
@@ -333,8 +383,15 @@ class MovieClip extends Sprite #if (openfl_dynamic && haxe_ver < "4.0.0") implem
 	**/
 	public function prevFrame():Void
 	{
-		stop();
-		__goto(__currentFrame - 1);
+		if (__timeline != null)
+		{
+			__timeline.prevFrame();
+		}
+		else
+		{
+			stop();
+			__goto(__currentFrame - 1);
+		}
 	}
 
 	// @:noCompletion @:dox(hide) public function prevScene ():Void;
@@ -345,15 +402,29 @@ class MovieClip extends Sprite #if (openfl_dynamic && haxe_ver < "4.0.0") implem
 	**/
 	public function stop():Void
 	{
-		__playing = false;
+		if (__timeline != null)
+		{
+			__timeline.stop();
+		}
+		else
+		{
+			__playing = false;
+		}
 	}
 
 	public override function __enterFrame(deltaTime:Int):Void
 	{
-		__updateFrameScript(deltaTime);
-		__updateSymbol(__currentFrame);
+		if (__timeline != null)
+		{
+			__timeline.enterFrame(deltaTime);
+		}
+		else
+		{
+			__updateFrameScript(deltaTime);
+			__updateSymbol(__currentFrame);
 
-		super.__enterFrame(deltaTime);
+			super.__enterFrame(deltaTime);
+		}
 	}
 
 	@:noCompletion private function __updateFrameScript(deltaTime:Int):Void
@@ -631,6 +702,7 @@ class MovieClip extends Sprite #if (openfl_dynamic && haxe_ver < "4.0.0") implem
 					var program = parser.parseString(frameData.scriptSource);
 					var interp = new Interp();
 					interp.variables.set("this", this);
+					interp.variables.set("flash.events_Event", Event);
 
 					var script = function()
 					{
@@ -648,10 +720,17 @@ class MovieClip extends Sprite #if (openfl_dynamic && haxe_ver < "4.0.0") implem
 						}
 						catch (e:Dynamic)
 						{
-							Log.info("Error evaluating frame script\n " + e + "\n" + haxe.CallStack.exceptionStack().map(function(a)
+							Log.info("Error evaluating frame script\n "
+								+ e
+								+ "\n"
+								+ haxe.CallStack.exceptionStack().map(function(a)
 								{
 									return untyped a[2];
-								}).join("\n") + "\n" + e.stack + "\n" + untyped script.toString());
+								}).join("\n")
+								+ "\n"
+								+ e.stack
+								+ "\n"
+								+ untyped script.toString());
 						}
 					}
 
@@ -662,8 +741,8 @@ class MovieClip extends Sprite #if (openfl_dynamic && haxe_ver < "4.0.0") implem
 				{
 					if (__symbol.className != null)
 					{
-						Log.warn("Unable to evaluate frame script source for symbol \"" + __symbol.className + "\" frame " + frame + "\n" + frameData
-							.scriptSource);
+						Log.warn("Unable to evaluate frame script source for symbol \"" + __symbol.className + "\" frame " + frame + "\n"
+							+ frameData.scriptSource);
 					}
 					else
 					{
@@ -705,8 +784,8 @@ class MovieClip extends Sprite #if (openfl_dynamic && haxe_ver < "4.0.0") implem
 						for (activeInstance in __activeInstances)
 						{
 							if (activeInstance.displayObject != null
-									&& activeInstance.characterID == frameObject.symbol
-									&& activeInstance.depth == frameObject.depth)
+								&& activeInstance.characterID == frameObject.symbol
+								&& activeInstance.depth == frameObject.depth)
 							{
 								// TODO: Fix duplicates in exporter
 								instance = activeInstance;
@@ -728,10 +807,11 @@ class MovieClip extends Sprite #if (openfl_dynamic && haxe_ver < "4.0.0") implem
 							{
 								displayObject.parent = this;
 								displayObject.stage = stage;
+
 								if (stage != null) displayObject.dispatchEvent(new Event(Event.ADDED_TO_STAGE, false, false));
 
-								instance = new FrameSymbolInstance(frame, frameObject.id, frameObject.symbol, frameObject.depth, displayObject, frameObject
-									.clipDepth);
+								instance = new FrameSymbolInstance(frame, frameObject.id, frameObject.symbol, frameObject.depth, displayObject,
+									frameObject.clipDepth);
 							}
 						}
 					}
@@ -820,7 +900,7 @@ class MovieClip extends Sprite #if (openfl_dynamic && haxe_ver < "4.0.0") implem
 
 	@:noCompletion private function __goto(frame:Int):Void
 	{
-		if (__symbol == null) return;
+		if (__timeline == null && __symbol == null) return;
 
 		if (frame < 1) frame = 1;
 		else if (frame > __totalFrames) frame = __totalFrames;
@@ -895,6 +975,8 @@ class MovieClip extends Sprite #if (openfl_dynamic && haxe_ver < "4.0.0") implem
 			displayObject.transform.colorTransform = new ColorTransform();
 		}
 
+		displayObject.transform = displayObject.transform;
+
 		if (frameObject.filters != null)
 		{
 			var filters:Array<BitmapFilter> = [];
@@ -936,7 +1018,7 @@ class MovieClip extends Sprite #if (openfl_dynamic && haxe_ver < "4.0.0") implem
 
 		if (frameObject.cacheAsBitmap != null)
 		{
-			// displayObject.cacheAsBitmap = frameObject.cacheAsBitmap;
+			displayObject.cacheAsBitmap = frameObject.cacheAsBitmap;
 		}
 
 		#if (openfljs || ((openfl_dynamic || openfl_dynamic_fields_only) && haxe_ver <= "4.0.0"))

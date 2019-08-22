@@ -1,6 +1,8 @@
 package openfl.events;
 
 #if !flash
+import openfl._internal.utils.ObjectPool;
+
 /**
 	An UncaughtErrorEvent object is dispatched by an instance of the
 	UncaughtErrorEvents class when an uncaught error occurs. An uncaught error
@@ -90,7 +92,7 @@ class UncaughtErrorEvent extends ErrorEvent
 		| `target` | The LoaderInfo object associated with the SWF where the error happened. |
 		| `text` | Text error message. |
 	**/
-	public static inline var UNCAUGHT_ERROR:String = "uncaughtError";
+	public static inline var UNCAUGHT_ERROR:EventType<UncaughtErrorEvent> = "uncaughtError";
 
 	/**
 		The error object associated with the uncaught error. Typically, this
@@ -154,6 +156,9 @@ class UncaughtErrorEvent extends ErrorEvent
 	**/
 	public var error(default, null):Dynamic;
 
+	@:noCompletion private static var __pool:ObjectPool<UncaughtErrorEvent> = new ObjectPool<UncaughtErrorEvent>(function() return
+		new UncaughtErrorEvent(null), function(event) event.__init());
+
 	/**
 		Creates an UncaughtErrorEvent object that contains information about
 		an `uncaughtError` event.
@@ -177,7 +182,7 @@ class UncaughtErrorEvent extends ErrorEvent
 		this.error = error;
 	}
 
-	public override function clone():Event
+	public override function clone():UncaughtErrorEvent
 	{
 		var event = new UncaughtErrorEvent(type, bubbles, cancelable, error);
 		event.target = target;
@@ -189,6 +194,12 @@ class UncaughtErrorEvent extends ErrorEvent
 	public override function toString():String
 	{
 		return __formatToString("UncaughtErrorEvent", ["type", "bubbles", "cancelable", "error"]);
+	}
+
+	@:noCompletion private override function __init():Void
+	{
+		super.__init();
+		error = null;
 	}
 }
 #else

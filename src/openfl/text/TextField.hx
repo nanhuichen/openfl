@@ -2,16 +2,6 @@ package openfl.text;
 
 #if !flash
 import haxe.Timer;
-import openfl._internal.renderer.cairo.CairoBitmap;
-import openfl._internal.renderer.cairo.CairoDisplayObject;
-import openfl._internal.renderer.cairo.CairoTextField;
-import openfl._internal.renderer.canvas.CanvasBitmap;
-import openfl._internal.renderer.canvas.CanvasDisplayObject;
-import openfl._internal.renderer.canvas.CanvasTextField;
-import openfl._internal.renderer.dom.DOMBitmap;
-import openfl._internal.renderer.dom.DOMTextField;
-import openfl._internal.renderer.context3D.Context3DBitmap;
-import openfl._internal.renderer.context3D.Context3DDisplayObject;
 import openfl._internal.formats.swf.SWFLite;
 import openfl._internal.symbols.DynamicTextSymbol;
 import openfl._internal.symbols.FontSymbol;
@@ -21,14 +11,9 @@ import openfl._internal.text.TextFormatRange;
 import openfl._internal.text.TextLayoutGroup;
 import openfl._internal.text.UTF8String;
 import openfl._internal.utils.Log;
-import openfl.display.CanvasRenderer;
-import openfl.display.CairoRenderer;
 import openfl.display.DisplayObject;
-import openfl.display.DisplayObjectRenderer;
-import openfl.display.DOMRenderer;
 import openfl.display.Graphics;
 import openfl.display.InteractiveObject;
-import openfl.display.OpenGLRenderer;
 import openfl.errors.RangeError;
 import openfl.events.Event;
 import openfl.events.FocusEvent;
@@ -267,6 +252,7 @@ class TextField extends InteractiveObject
 		is 0, the second position is 1, and so on).
 	**/
 	public var caretIndex(get, never):Int;
+
 	/**
 		A Boolean value that specifies whether extra white space (spaces, line
 		breaks, and so on) in a text field with HTML text is removed. The
@@ -552,6 +538,7 @@ class TextField extends InteractiveObject
 		@default true
 	**/
 	public var selectable(get, set):Bool;
+
 	// var selectedText(default,never) : String;
 
 	/**
@@ -581,6 +568,7 @@ class TextField extends InteractiveObject
 		@default 0
 	**/
 	public var sharpness(get, set):Float;
+
 	/**
 		Attaches a style sheet to the text field. For information on creating
 		style sheets, see the StyleSheet class and the _ActionScript 3.0
@@ -624,6 +612,7 @@ class TextField extends InteractiveObject
 		The height of the text in pixels.
 	**/
 	public var textHeight(get, never):Float;
+
 	/**
 		The interaction mode property, Default value is
 		TextInteractionMode.NORMAL. On mobile platforms, the normal mode
@@ -638,6 +627,7 @@ class TextField extends InteractiveObject
 		The width of the text in pixels.
 	**/
 	public var textWidth(get, never):Float;
+
 	/**
 		The thickness of the glyph edges in this text field. This property
 		applies only when `openfl.text.AntiAliasType` is set to
@@ -661,6 +651,7 @@ class TextField extends InteractiveObject
 							  openfl.text.TextFieldType.
 	**/
 	public var type(get, set):TextFieldType;
+
 	/**
 		Specifies whether to copy and paste the text formatting along with the
 		text. When set to `true`, Flash Player copies and pastes formatting
@@ -708,41 +699,100 @@ class TextField extends InteractiveObject
 	#if openfljs
 	@:noCompletion private static function __init__()
 	{
-		untyped Object.defineProperties(TextField.prototype,
-			{
-				"antiAliasType": {get: untyped __js__("function () { return this.get_antiAliasType (); }"), set: untyped __js__("function (v) { return this.set_antiAliasType (v); }")},
-				"autoSize": {get: untyped __js__("function () { return this.get_autoSize (); }"), set: untyped __js__("function (v) { return this.set_autoSize (v); }")},
-				"background": {get: untyped __js__("function () { return this.get_background (); }"), set: untyped __js__("function (v) { return this.set_background (v); }")},
-				"backgroundColor": {get: untyped __js__("function () { return this.get_backgroundColor (); }"), set: untyped __js__("function (v) { return this.set_backgroundColor (v); }")},
-				"border": {get: untyped __js__("function () { return this.get_border (); }"), set: untyped __js__("function (v) { return this.set_border (v); }")},
-				"borderColor": {get: untyped __js__("function () { return this.get_borderColor (); }"), set: untyped __js__("function (v) { return this.set_borderColor (v); }")},
-				"bottomScrollV": {get: untyped __js__("function () { return this.get_bottomScrollV (); }")},
-				"defaultTextFormat": {get: untyped __js__("function () { return this.get_defaultTextFormat (); }"), set: untyped __js__("function (v) { return this.set_defaultTextFormat (v); }")},
-				"displayAsPassword": {get: untyped __js__("function () { return this.get_displayAsPassword (); }"), set: untyped __js__("function (v) { return this.set_displayAsPassword (v); }")},
-				"embedFonts": {get: untyped __js__("function () { return this.get_embedFonts (); }"), set: untyped __js__("function (v) { return this.set_embedFonts (v); }")},
-				"gridFitType": {get: untyped __js__("function () { return this.get_gridFitType (); }"), set: untyped __js__("function (v) { return this.set_gridFitType (v); }")},
-				"htmlText": {get: untyped __js__("function () { return this.get_htmlText (); }"), set: untyped __js__("function (v) { return this.set_htmlText (v); }")},
-				"length": {get: untyped __js__("function () { return this.get_length (); }")},
-				"maxChars": {get: untyped __js__("function () { return this.get_maxChars (); }"), set: untyped __js__("function (v) { return this.set_maxChars (v); }")},
-				"maxScrollH": {get: untyped __js__("function () { return this.get_maxScrollH (); }")},
-				"maxScrollV": {get: untyped __js__("function () { return this.get_maxScrollV (); }")},
-				"mouseWheelEnabled": {get: untyped __js__("function () { return this.get_mouseWheelEnabled (); }"), set: untyped __js__("function (v) { return this.set_mouseWheelEnabled (v); }")},
-				"multiline": {get: untyped __js__("function () { return this.get_multiline (); }"), set: untyped __js__("function (v) { return this.set_multiline (v); }")},
-				"numLines": {get: untyped __js__("function () { return this.get_numLines (); }")},
-				"restrict": {get: untyped __js__("function () { return this.get_restrict (); }"), set: untyped __js__("function (v) { return this.set_restrict (v); }")},
-				"scrollH": {get: untyped __js__("function () { return this.get_scrollH (); }"), set: untyped __js__("function (v) { return this.set_scrollH (v); }")},
-				"scrollV": {get: untyped __js__("function () { return this.get_scrollV (); }"), set: untyped __js__("function (v) { return this.set_scrollV (v); }")},
-				"selectable": {get: untyped __js__("function () { return this.get_selectable (); }"), set: untyped __js__("function (v) { return this.set_selectable (v); }")},
-				"selectionBeginIndex": {get: untyped __js__("function () { return this.get_selectionBeginIndex (); }")},
-				"selectionEndIndex": {get: untyped __js__("function () { return this.get_selectionEndIndex (); }")},
-				"sharpness": {get: untyped __js__("function () { return this.get_sharpness (); }"), set: untyped __js__("function (v) { return this.set_sharpness (v); }")},
-				"text": {get: untyped __js__("function () { return this.get_text (); }"), set: untyped __js__("function (v) { return this.set_text (v); }")},
-				"textColor": {get: untyped __js__("function () { return this.get_textColor (); }"), set: untyped __js__("function (v) { return this.set_textColor (v); }")},
-				"textHeight": {get: untyped __js__("function () { return this.get_textHeight (); }")},
-				"textWidth": {get: untyped __js__("function () { return this.get_textWidth (); }")},
-				"type": {get: untyped __js__("function () { return this.get_type (); }"), set: untyped __js__("function (v) { return this.set_type (v); }")},
-				"wordWrap": {get: untyped __js__("function () { return this.get_wordWrap (); }"), set: untyped __js__("function (v) { return this.set_wordWrap (v); }")},
-			});
+		untyped Object.defineProperties(TextField.prototype, {
+			"antiAliasType": {
+				get: untyped __js__("function () { return this.get_antiAliasType (); }"),
+				set: untyped __js__("function (v) { return this.set_antiAliasType (v); }")
+			},
+			"autoSize": {
+				get: untyped __js__("function () { return this.get_autoSize (); }"),
+				set: untyped __js__("function (v) { return this.set_autoSize (v); }")
+			},
+			"background": {
+				get: untyped __js__("function () { return this.get_background (); }"),
+				set: untyped __js__("function (v) { return this.set_background (v); }")
+			},
+			"backgroundColor": {
+				get: untyped __js__("function () { return this.get_backgroundColor (); }"),
+				set: untyped __js__("function (v) { return this.set_backgroundColor (v); }")
+			},
+			"border": {get: untyped __js__("function () { return this.get_border (); }"), set: untyped __js__("function (v) { return this.set_border (v); }")},
+			"borderColor": {
+				get: untyped __js__("function () { return this.get_borderColor (); }"),
+				set: untyped __js__("function (v) { return this.set_borderColor (v); }")
+			},
+			"bottomScrollV": {get: untyped __js__("function () { return this.get_bottomScrollV (); }")},
+			"defaultTextFormat": {
+				get: untyped __js__("function () { return this.get_defaultTextFormat (); }"),
+				set: untyped __js__("function (v) { return this.set_defaultTextFormat (v); }")
+			},
+			"displayAsPassword": {
+				get: untyped __js__("function () { return this.get_displayAsPassword (); }"),
+				set: untyped __js__("function (v) { return this.set_displayAsPassword (v); }")
+			},
+			"embedFonts": {
+				get: untyped __js__("function () { return this.get_embedFonts (); }"),
+				set: untyped __js__("function (v) { return this.set_embedFonts (v); }")
+			},
+			"gridFitType": {
+				get: untyped __js__("function () { return this.get_gridFitType (); }"),
+				set: untyped __js__("function (v) { return this.set_gridFitType (v); }")
+			},
+			"htmlText": {
+				get: untyped __js__("function () { return this.get_htmlText (); }"),
+				set: untyped __js__("function (v) { return this.set_htmlText (v); }")
+			},
+			"length": {get: untyped __js__("function () { return this.get_length (); }")},
+			"maxChars": {
+				get: untyped __js__("function () { return this.get_maxChars (); }"),
+				set: untyped __js__("function (v) { return this.set_maxChars (v); }")
+			},
+			"maxScrollH": {get: untyped __js__("function () { return this.get_maxScrollH (); }")},
+			"maxScrollV": {get: untyped __js__("function () { return this.get_maxScrollV (); }")},
+			"mouseWheelEnabled": {
+				get: untyped __js__("function () { return this.get_mouseWheelEnabled (); }"),
+				set: untyped __js__("function (v) { return this.set_mouseWheelEnabled (v); }")
+			},
+			"multiline": {
+				get: untyped __js__("function () { return this.get_multiline (); }"),
+				set: untyped __js__("function (v) { return this.set_multiline (v); }")
+			},
+			"numLines": {get: untyped __js__("function () { return this.get_numLines (); }")},
+			"restrict": {
+				get: untyped __js__("function () { return this.get_restrict (); }"),
+				set: untyped __js__("function (v) { return this.set_restrict (v); }")
+			},
+			"scrollH": {
+				get: untyped __js__("function () { return this.get_scrollH (); }"),
+				set: untyped __js__("function (v) { return this.set_scrollH (v); }")
+			},
+			"scrollV": {
+				get: untyped __js__("function () { return this.get_scrollV (); }"),
+				set: untyped __js__("function (v) { return this.set_scrollV (v); }")
+			},
+			"selectable": {
+				get: untyped __js__("function () { return this.get_selectable (); }"),
+				set: untyped __js__("function (v) { return this.set_selectable (v); }")
+			},
+			"selectionBeginIndex": {get: untyped __js__("function () { return this.get_selectionBeginIndex (); }")},
+			"selectionEndIndex": {get: untyped __js__("function () { return this.get_selectionEndIndex (); }")},
+			"sharpness": {
+				get: untyped __js__("function () { return this.get_sharpness (); }"),
+				set: untyped __js__("function (v) { return this.set_sharpness (v); }")
+			},
+			"text": {get: untyped __js__("function () { return this.get_text (); }"), set: untyped __js__("function (v) { return this.set_text (v); }")},
+			"textColor": {
+				get: untyped __js__("function () { return this.get_textColor (); }"),
+				set: untyped __js__("function (v) { return this.set_textColor (v); }")
+			},
+			"textHeight": {get: untyped __js__("function () { return this.get_textHeight (); }")},
+			"textWidth": {get: untyped __js__("function () { return this.get_textWidth (); }")},
+			"type": {get: untyped __js__("function () { return this.get_type (); }"), set: untyped __js__("function (v) { return this.set_type (v); }")},
+			"wordWrap": {
+				get: untyped __js__("function () { return this.get_wordWrap (); }"),
+				set: untyped __js__("function (v) { return this.set_wordWrap (v); }")
+			},
+		});
 	}
 	#end
 
@@ -757,6 +807,8 @@ class TextField extends InteractiveObject
 	public function new()
 	{
 		super();
+
+		__type = TEXTFIELD;
 
 		__caretIndex = -1;
 		__displayAsPassword = false;
@@ -807,6 +859,8 @@ class TextField extends InteractiveObject
 		__updateText(__text + text);
 
 		__textEngine.textFormatRanges[__textEngine.textFormatRanges.length - 1].end = __text.length;
+
+		__updateScrollV();
 		__updateScrollH();
 	}
 
@@ -815,7 +869,7 @@ class TextField extends InteractiveObject
 	/**
 		Returns a rectangle that is the bounding box of the character.
 
-		@param charIndex The zero-based index value for the character(for
+		@param charIndex The zero-based index value for the character (for
 						 example, the first position is 0, the second position is
 						 1, and so on).
 		@return A rectangle with `x` and `y` minimum and
@@ -1312,6 +1366,9 @@ class TextField extends InteractiveObject
 	{
 		__selectionIndex = beginIndex;
 		__caretIndex = endIndex;
+
+		__updateScrollV();
+
 		__stopCursorTimer();
 		__startCursorTimer();
 	}
@@ -1833,7 +1890,7 @@ class TextField extends InteractiveObject
 
 		for (group in __textEngine.layoutGroups)
 		{
-			if (charIndex >= group.startIndex && charIndex <= group.endIndex)
+			if (charIndex >= group.startIndex && charIndex < group.endIndex)
 			{
 				try
 				{
@@ -1948,7 +2005,8 @@ class TextField extends InteractiveObject
 
 			if ((y >= group.offsetY && y <= group.offsetY + group.height) || (!precise && nextGroup == null))
 			{
-				if ((x >= group.offsetX && x <= group.offsetX + group.width) || (!precise && (nextGroup == null || nextGroup.lineIndex != group.lineIndex)))
+				if ((x >= group.offsetX && x <= group.offsetX + group.width)
+					|| (!precise && (nextGroup == null || nextGroup.lineIndex != group.lineIndex)))
 				{
 					return group;
 				}
@@ -2030,158 +2088,6 @@ class TextField extends InteractiveObject
 		return false;
 	}
 
-	@:noCompletion private override function __renderCairo(renderer:CairoRenderer):Void
-	{
-		#if lime_cairo
-		__updateCacheBitmap(renderer, /*!__worldColorTransform.__isDefault ()*/ false);
-
-		if (__cacheBitmap != null && !__isCacheBitmapRender)
-		{
-			CairoBitmap.render(__cacheBitmap, renderer);
-		}
-		else
-		{
-			CairoTextField.render(this, renderer, __worldTransform);
-			CairoDisplayObject.render(this, renderer);
-		}
-
-		__renderEvent(renderer);
-		#end
-	}
-
-	@:noCompletion private override function __renderCanvas(renderer:CanvasRenderer):Void
-	{
-		#if (js && html5)
-		// TODO: Better DOM workaround on cacheAsBitmap
-
-		if (renderer.__isDOM && !__renderedOnCanvasWhileOnDOM)
-		{
-			__renderedOnCanvasWhileOnDOM = true;
-
-			if (type == TextFieldType.INPUT)
-			{
-				replaceText(0, __text.length, __text);
-			}
-
-			if (__isHTML)
-			{
-				__updateText(HTMLParser.parse(__text, __textFormat, __textEngine.textFormatRanges));
-			}
-
-			__dirty = true;
-			__layoutDirty = true;
-			__setRenderDirty();
-		}
-
-		if (mask == null || (mask.width > 0 && mask.height > 0))
-		{
-			__updateCacheBitmap(renderer, /*!__worldColorTransform.__isDefault ()*/ false);
-
-			if (__cacheBitmap != null && !__isCacheBitmapRender)
-			{
-				CanvasBitmap.render(__cacheBitmap, renderer);
-			}
-			else
-			{
-				CanvasTextField.render(this, renderer, __worldTransform);
-
-				var smoothingEnabled = false;
-
-				if (__textEngine.antiAliasType == ADVANCED && __textEngine.gridFitType == PIXEL)
-				{
-					smoothingEnabled = renderer.context.imageSmoothingEnabled;
-
-					if (smoothingEnabled)
-					{
-						renderer.context.imageSmoothingEnabled = false;
-					}
-				}
-
-				CanvasDisplayObject.render(this, renderer);
-
-				if (smoothingEnabled)
-				{
-					renderer.context.imageSmoothingEnabled = true;
-				}
-			}
-		}
-		#end
-	}
-
-	@:noCompletion private override function __renderDOM(renderer:DOMRenderer):Void
-	{
-		#if (js && html5)
-		__domRender = true;
-		__updateCacheBitmap(renderer, __forceCachedBitmapUpdate || /*!__worldColorTransform.__isDefault ()*/ false);
-		__forceCachedBitmapUpdate = false;
-		__domRender = false;
-
-		if (__cacheBitmap != null && !__isCacheBitmapRender)
-		{
-			__renderDOMClear(renderer);
-			__cacheBitmap.stage = stage;
-
-			DOMBitmap.render(__cacheBitmap, renderer);
-		}
-		else
-		{
-			if (__renderedOnCanvasWhileOnDOM)
-			{
-				__renderedOnCanvasWhileOnDOM = false;
-
-				if (__isHTML && __rawHtmlText != null)
-				{
-					__updateText(__rawHtmlText);
-					__dirty = true;
-					__layoutDirty = true;
-					__setRenderDirty();
-				}
-			}
-
-			DOMTextField.render(this, renderer);
-		}
-
-		__renderEvent(renderer);
-		#end
-	}
-
-	@:noCompletion private override function __renderDOMClear(renderer:DOMRenderer):Void
-	{
-		DOMTextField.clear(this, renderer);
-	}
-
-	@:noCompletion private override function __renderGL(renderer:OpenGLRenderer):Void
-	{
-		__updateCacheBitmap(renderer, false);
-
-		if (__cacheBitmap != null && !__isCacheBitmapRender)
-		{
-			Context3DBitmap.render(__cacheBitmap, renderer);
-		}
-		else
-		{
-			#if (js && html5)
-			CanvasTextField.render(this, cast renderer.__softwareRenderer, __worldTransform);
-			#elseif lime_cairo
-			CairoTextField.render(this, cast renderer.__softwareRenderer, __worldTransform);
-			#end
-			Context3DDisplayObject.render(this, renderer);
-		}
-
-		__renderEvent(renderer);
-	}
-
-	@:noCompletion private override function __renderGLMask(renderer:OpenGLRenderer):Void
-	{
-		#if (js && html5)
-		CanvasTextField.render(this, cast renderer.__softwareRenderer, __worldTransform);
-		#elseif lime_cairo
-		CairoTextField.render(this, cast renderer.__softwareRenderer, __worldTransform);
-		#end
-
-		super.__renderGLMask(renderer);
-	}
-
 	@:noCompletion private function __replaceSelectedText(value:String, restrict:Bool = true):Void
 	{
 		if (value == null) value = "";
@@ -2249,47 +2155,90 @@ class TextField extends InteractiveObject
 		{
 			range = __textEngine.textFormatRanges[i];
 
-			if (range.start <= beginIndex && range.end >= endIndex)
+			if (beginIndex == endIndex)
 			{
-				range.end += offset;
-				i++;
-			}
-			else if (range.start >= beginIndex && range.end <= endIndex)
-			{
-				if (i > 0)
+				if (range.end < beginIndex)
 				{
-					__textEngine.textFormatRanges.splice(i, 1);
+					// do nothing, range is completely before insertion point
+				}
+				else if (range.start > endIndex)
+				{
+					// shift range, range is after insertion point
+					range.start += offset;
+					range.end += offset;
 				}
 				else
 				{
-					range.start = 0;
-					range.end = beginIndex + newText.length;
-					i++;
+					if (range.start < range.end && range.end == beginIndex && i < __textEngine.textFormatRanges.length - 1)
+					{
+						// do nothing, insertion point is between two ranges, so it belongs to the next range
+						// unless there are no more ranges after this one (inserting at the end of the text)
+					}
+					else
+					{
+						// add to range, insertion point is within range
+						range.end += offset;
+					}
 				}
-
-				offset -= (range.end - range.start);
-			}
-			else if (range.start > beginIndex && range.start <= endIndex)
-			{
-				range.start += offset;
-				i++;
 			}
 			else
 			{
-				i++;
+				if (range.end < beginIndex)
+				{
+					// do nothing, range is before selection
+				}
+				else if (range.start >= endIndex)
+				{
+					// shift range, range is completely after selection
+					range.start += offset;
+					range.end += offset;
+				}
+				else if (range.start >= beginIndex && range.end <= endIndex)
+				{
+					// delete range, range is encompassed by selection
+					if (__textEngine.textFormatRanges.length > 1)
+					{
+						__textEngine.textFormatRanges.splice(i, 1);
+					}
+					else
+					{
+						// don't delete if it's the last range though, just modify properties
+						range.start = 0;
+						range.end = newText.length;
+					}
+				}
+				else if (range.start <= beginIndex)
+				{
+					if (range.end < endIndex)
+					{
+						// modify range, range ends before the selection ends
+						range.end = beginIndex;
+					}
+					else
+					{
+						// modify range, range ends where or after the selection ends
+						range.end += offset;
+					}
+				}
+				else
+				{
+					// modify range, selection begins before the range
+					// for deletion: entire range shifts leftward
+					// for addition: added text gains the format of endIndex
+					range.start = beginIndex;
+					range.end += offset;
+				}
 			}
+			
+			i++;
 		}
 
+		__updateScrollV();
 		__updateScrollH();
 
 		__dirty = true;
 		__layoutDirty = true;
 		__setRenderDirty();
-	}
-
-	@:noCompletion private override function __shouldCacheHardware(value:Null<Bool>):Null<Bool>
-	{
-		return value == true ? true : false;
 	}
 
 	@:noCompletion private function __startCursorTimer():Void
@@ -2308,7 +2257,7 @@ class TextField extends InteractiveObject
 			__selectionIndex = __caretIndex;
 		}
 
-		var enableInput = #if (js && html5)(DisplayObject.__supportDOM ? __renderedOnCanvasWhileOnDOM : true) #else true #end;
+		var enableInput = #if (js && html5) (DisplayObject.__supportDOM ? __renderedOnCanvasWhileOnDOM : true) #else true #end;
 
 		if (enableInput)
 		{
@@ -2334,7 +2283,7 @@ class TextField extends InteractiveObject
 
 	@:noCompletion private function __stopTextInput():Void
 	{
-		var disableInput = #if (js && html5)(DisplayObject.__supportDOM ? __renderedOnCanvasWhileOnDOM : true) #else true #end;
+		var disableInput = #if (js && html5) (DisplayObject.__supportDOM ? __renderedOnCanvasWhileOnDOM : true) #else true #end;
 
 		if (disableInput)
 		{
@@ -2342,32 +2291,11 @@ class TextField extends InteractiveObject
 		}
 	}
 
-	@:noCompletion private override function __updateCacheBitmap(renderer:DisplayObjectRenderer, force:Bool):Bool
-	{
-		#if lime
-		if (__filters == null && renderer.__type == OPENGL && __cacheBitmap == null && !__domRender) return false;
-
-		if (super.__updateCacheBitmap(renderer, force || __dirty))
-		{
-			if (__cacheBitmap != null)
-			{
-				__cacheBitmap.__renderTransform.tx -= __offsetX;
-				__cacheBitmap.__renderTransform.ty -= __offsetY;
-			}
-
-			return true;
-		}
-		#end
-
-		return false;
-	}
-
 	@:noCompletion private function __updateLayout():Void
 	{
 		if (__layoutDirty)
 		{
 			var cacheWidth = __textEngine.width;
-
 			__textEngine.update();
 
 			if (__textEngine.autoSize != NONE)
@@ -2432,6 +2360,47 @@ class TextField extends InteractiveObject
 			{
 				scrollH = 0;
 			}
+		}
+	}
+
+	@:noCompletion private function __updateScrollV():Void
+	{
+		__layoutDirty = true;
+		__updateLayout();
+
+		var lineIndex = getLineIndexOfChar(__caretIndex);
+
+		if (lineIndex == -1 && __caretIndex > 0)
+		{
+			// new paragraph
+			lineIndex = getLineIndexOfChar(__caretIndex - 1) + 1;
+		}
+
+		if (lineIndex + 1 < scrollV)
+		{
+			scrollV = lineIndex + 1;
+		}
+		else if (lineIndex + 1 > bottomScrollV)
+		{
+			var i = lineIndex, tempHeight = 0.0;
+
+			while (i >= 0)
+			{
+				if (tempHeight + __textEngine.lineHeights[i] <= height - 4)
+				{
+					tempHeight += __textEngine.lineHeights[i];
+					i--;
+				}
+				else
+					break;
+			}
+
+			scrollV = i + 2;
+		}
+		else
+		{
+			// TODO: can this be avoided? this doesn't need to hit the setter each time, just a couple times
+			scrollV = scrollV;
 		}
 	}
 
@@ -2734,6 +2703,7 @@ class TextField extends InteractiveObject
 		#else
 		__updateText(value);
 		#end
+		__updateScrollV();
 
 		return value;
 	}
@@ -2803,6 +2773,7 @@ class TextField extends InteractiveObject
 			__dirty = true;
 			__layoutDirty = true;
 			__updateText(__text);
+			// __updateScrollV();
 			__updateScrollH();
 			__setRenderDirty();
 		}
@@ -2863,9 +2834,6 @@ class TextField extends InteractiveObject
 	@:noCompletion private function set_scrollV(value:Int):Int
 	{
 		__updateLayout();
-
-		if (value > __textEngine.maxScrollV) value = __textEngine.maxScrollV;
-		if (value < 1) value = 1;
 
 		if (value != __textEngine.scrollV)
 		{
@@ -2962,6 +2930,7 @@ class TextField extends InteractiveObject
 		__isHTML = false;
 
 		__updateText(value);
+		__updateScrollV();
 
 		return value;
 	}
@@ -3321,6 +3290,7 @@ class TextField extends InteractiveObject
 				}
 
 				__updateScrollH();
+				__updateScrollV();
 				__stopCursorTimer();
 				__startCursorTimer();
 
@@ -3353,6 +3323,8 @@ class TextField extends InteractiveObject
 				}
 
 				__updateScrollH();
+				__updateScrollV();
+
 				__stopCursorTimer();
 				__startCursorTimer();
 
@@ -3378,6 +3350,8 @@ class TextField extends InteractiveObject
 					__selectionIndex = __caretIndex;
 				}
 
+				__updateScrollV();
+
 				__stopCursorTimer();
 				__startCursorTimer();
 
@@ -3402,6 +3376,8 @@ class TextField extends InteractiveObject
 
 					__selectionIndex = __caretIndex;
 				}
+
+				__updateScrollV();
 
 				__stopCursorTimer();
 				__startCursorTimer();

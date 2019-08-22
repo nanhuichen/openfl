@@ -99,7 +99,7 @@ class Transform
 		A Matrix object containing values that alter the scaling, rotation, and
 		translation of the display object.
 
-		If the `matrix` property is set to a value(not
+		If the `matrix` property is set to a value (not
 		`null`), the `matrix3D` property is
 		`null`. And if the `matrix3D` property is set to a
 		value(not `null`), the `matrix` property is
@@ -122,6 +122,7 @@ class Transform
 		`null`.
 	**/
 	public var matrix3D(get, set):Matrix3D;
+
 	// @:noCompletion @:dox(hide) @:require(flash10) public var perspectiveProjection:PerspectiveProjection;
 
 	/**
@@ -138,13 +139,21 @@ class Transform
 	#if openfljs
 	@:noCompletion private static function __init__()
 	{
-		untyped Object.defineProperties(Transform.prototype,
-			{
-				"colorTransform": {get: untyped __js__("function () { return this.get_colorTransform (); }"), set: untyped __js__("function (v) { return this.set_colorTransform (v); }")},
-				"concatenatedMatrix": {get: untyped __js__("function () { return this.get_concatenatedMatrix (); }"), set: untyped __js__("function (v) { return this.set_concatenatedMatrix (v); }")},
-				"matrix": {get: untyped __js__("function () { return this.get_matrix (); }"), set: untyped __js__("function (v) { return this.set_matrix (v); }")},
-				"matrix3D": {get: untyped __js__("function () { return this.get_matrix3D (); }"), set: untyped __js__("function (v) { return this.set_matrix3D (v); }")},
-			});
+		untyped Object.defineProperties(Transform.prototype, {
+			"colorTransform": {
+				get: untyped __js__("function () { return this.get_colorTransform (); }"),
+				set: untyped __js__("function (v) { return this.set_colorTransform (v); }")
+			},
+			"concatenatedMatrix": {
+				get: untyped __js__("function () { return this.get_concatenatedMatrix (); }"),
+				set: untyped __js__("function (v) { return this.set_concatenatedMatrix (v); }")
+			},
+			"matrix": {get: untyped __js__("function () { return this.get_matrix (); }"), set: untyped __js__("function (v) { return this.set_matrix (v); }")},
+			"matrix3D": {
+				get: untyped __js__("function () { return this.get_matrix3D (); }"),
+				set: untyped __js__("function (v) { return this.set_matrix3D (v); }")
+			},
+		});
 	}
 	#end
 
@@ -158,6 +167,7 @@ class Transform
 		__hasMatrix = true;
 	}
 
+	#if false
 	/**
 		Returns a Matrix3D object, which can transform the space of a
 		specified display object in relation to the current display object's
@@ -177,6 +187,7 @@ class Transform
 				space.
 	**/
 	// @:noCompletion @:dox(hide) @:require(flash10) public function getRelativeMatrix3D (relativeTo:DisplayObject):Matrix3D;
+	#end
 	// Get & Set Methods
 	@:noCompletion private function get_colorTransform():ColorTransform
 	{
@@ -286,7 +297,7 @@ class Transform
 
 			if (c == 0)
 			{
-				scaleY = a;
+				scaleY = d;
 			}
 			else
 			{

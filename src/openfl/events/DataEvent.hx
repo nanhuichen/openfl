@@ -1,6 +1,8 @@
 package openfl.events;
 
 #if !flash
+import openfl._internal.utils.ObjectPool;
+
 /**
 	An object dispatches a DataEvent object when raw data has completed
 	loading. There are two types of data event:
@@ -27,7 +29,7 @@ class DataEvent extends TextEvent
 		| `data` | The raw data loaded into Flash Player or Adobe AIR. |
 		| `target` | The XMLSocket object receiving data. |
 	**/
-	public static inline var DATA:String = "data";
+	public static inline var DATA:EventType<DataEvent> = "data";
 
 	/**
 		Defines the value of the `type` property of an `uploadCompleteData`
@@ -42,12 +44,15 @@ class DataEvent extends TextEvent
 		| `data` | The raw data returned from the server after a successful file upload. |
 		| `target` | The FileReference object receiving data after a successful upload. |
 	**/
-	public static inline var UPLOAD_COMPLETE_DATA:String = "uploadCompleteData";
+	public static inline var UPLOAD_COMPLETE_DATA:EventType<DataEvent> = "uploadCompleteData";
 
 	/**
 		The raw data loaded into Flash Player or Adobe AIR.
 	**/
 	public var data:String;
+
+	@:noCompletion private static var __pool:ObjectPool<DataEvent> = new ObjectPool<DataEvent>(function() return new DataEvent(null),
+	function(event) event.__init());
 
 	/**
 		Creates an event object that contains information about data events.
@@ -75,7 +80,7 @@ class DataEvent extends TextEvent
 		this.data = data;
 	}
 
-	public override function clone():Event
+	public override function clone():DataEvent
 	{
 		var event = new DataEvent(type, bubbles, cancelable, data);
 		event.target = target;
@@ -87,6 +92,12 @@ class DataEvent extends TextEvent
 	public override function toString():String
 	{
 		return __formatToString("DataEvent", ["type", "bubbles", "cancelable", "data"]);
+	}
+
+	@:noCompletion private override function __init():Void
+	{
+		super.__init();
+		data = "";
 	}
 }
 #else

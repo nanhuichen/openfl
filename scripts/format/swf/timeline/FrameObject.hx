@@ -22,8 +22,7 @@ class FrameObject
 	// The index of the layer this object resides on
 	public var layer:Int = -1;
 
-	public function new(depth:Int, clipDepth:Int, characterId:Int, className:String, placedAtIndex:Int, lastModifiedAtIndex:Int = 0,
-			isKeyframe:Bool = false)
+	public function new(depth:Int, clipDepth:Int, characterId:Int, className:String, placedAtIndex:Int, lastModifiedAtIndex:Int = 0, isKeyframe:Bool = false)
 	{
 		this.depth = depth;
 		this.clipDepth = clipDepth;
@@ -43,8 +42,8 @@ class FrameObject
 	public function toString( /*indent:Int = 0*/):String
 	{
 		var indent = 0;
-		var str:String = StringUtils.repeat(indent + 2) + "Depth: " + depth + (layer > -1 ? " (Layer " + layer + ")" : "") + ", " + "CharacterId: " +
-			characterId + ", ";
+		var str:String = StringUtils.repeat(indent + 2) + "Depth: " + depth + (layer > -1 ? " (Layer " + layer + ")" : "") + ", " + "CharacterId: "
+			+ characterId + ", ";
 		if (className != null)
 		{
 			str += "ClassName: " + className + ", ";

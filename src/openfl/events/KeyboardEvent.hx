@@ -1,6 +1,7 @@
 package openfl.events;
 
 #if !flash
+import openfl._internal.utils.ObjectPool;
 import openfl.ui.KeyLocation;
 
 /**
@@ -40,7 +41,7 @@ class KeyboardEvent extends Event
 		| `shiftKey` | `true` if the Shift key is active; `false` if it is inactive. |
 		| `target` | The InteractiveObject instance with focus. The `target` is not always the object in the display list that registered the event listener. Use the `currentTarget` property to access the object in the display list that is currently processing the event. |
 	**/
-	public static inline var KEY_DOWN:String = "keyDown";
+	public static inline var KEY_DOWN:EventType<KeyboardEvent> = "keyDown";
 
 	/**
 		The `KeyboardEvent.KEY_UP` constant defines the value of the `type`
@@ -61,7 +62,7 @@ class KeyboardEvent extends Event
 		| `shiftKey` | `true` if the Shift key is active; `false` if it is inactive. |
 		| `target` | The InteractiveObject instance with focus. The `target` is not always the object in the display list that registered the event listener. Use the `currentTarget` property to access the object in the display list that is currently processing the event. |
 	**/
-	public static inline var KEY_UP:String = "keyUp";
+	public static inline var KEY_UP:EventType<KeyboardEvent> = "keyUp";
 
 	/**
 		Indicates whether the Alt key is active(`true`) or inactive
@@ -130,6 +131,9 @@ class KeyboardEvent extends Event
 	**/
 	public var shiftKey:Bool;
 
+	@:noCompletion private static var __pool:ObjectPool<KeyboardEvent> = new ObjectPool<KeyboardEvent>(function() return new KeyboardEvent(null),
+	function(event) event.__init());
+
 	/**
 		Creates an Event object that contains specific information about keyboard
 		events. Event objects are passed as parameters to event listeners.
@@ -178,7 +182,7 @@ class KeyboardEvent extends Event
 		#end
 	}
 
-	public override function clone():Event
+	public override function clone():KeyboardEvent
 	{
 		var event = new KeyboardEvent(type, bubbles, cancelable, charCode, keyCode, keyLocation, ctrlKey, altKey, shiftKey
 			#if !openfl_doc_gen, controlKey, commandKey #end);
@@ -202,6 +206,22 @@ class KeyboardEvent extends Event
 			"altKey",
 			"shiftKey"
 		]);
+	}
+
+	@:noCompletion private override function __init():Void
+	{
+		super.__init();
+		charCode = 0;
+		keyCode = 0;
+		keyLocation = STANDARD;
+		ctrlKey = false;
+		altKey = false;
+		shiftKey = false;
+
+		#if !openfl_doc_gen
+		controlKey = false;
+		commandKey = false;
+		#end
 	}
 }
 #else

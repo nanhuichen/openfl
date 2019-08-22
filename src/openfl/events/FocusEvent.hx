@@ -1,6 +1,7 @@
 package openfl.events;
 
 #if !flash
+import openfl._internal.utils.ObjectPool;
 import openfl.display.InteractiveObject;
 
 /**
@@ -34,7 +35,7 @@ class FocusEvent extends Event
 		| `target` | The InteractiveObject instance that has just received focus. The `target` is not always the object in the display list that registered the event listener. Use the `currentTarget` property to access the object in the display list that is currently processing the event. |
 		| `direction` | The direction from which focus was assigned. This property reports the value of the `direction` parameter of the `assignFocus()` method of the stage. If the focus changed through some other means, the value will always be `FocusDirection.NONE`. Applies only to `focusIn` events. For all other focus events the value will be `FocusDirection.NONE`. |
 	**/
-	public static inline var FOCUS_IN:String = "focusIn";
+	public static inline var FOCUS_IN:EventType<FocusEvent> = "focusIn";
 
 	/**
 		Defines the value of the `type` property of a `focusOut` event object.
@@ -59,7 +60,7 @@ class FocusEvent extends Event
 		display list that is currently processing the event.
 		 |
 	**/
-	public static inline var FOCUS_OUT:String = "focusOut";
+	public static inline var FOCUS_OUT:EventType<FocusEvent> = "focusOut";
 
 	/**
 		Defines the value of the `type` property of a `keyFocusChange` event
@@ -76,7 +77,7 @@ class FocusEvent extends Event
 		| `shiftKey` | `true` if the Shift key modifier is activated; `false` otherwise. |
 		| `target` | The InteractiveObject instance that currently has focus. The `target` is not always the object in the display list that registered the event listener. Use the `currentTarget` property to access the object in the display list that is currently processing the event. |
 	**/
-	public static inline var KEY_FOCUS_CHANGE:String = "keyFocusChange";
+	public static inline var KEY_FOCUS_CHANGE:EventType<FocusEvent> = "keyFocusChange";
 
 	/**
 		Defines the value of the `type` property of a `mouseFocusChange` event
@@ -93,8 +94,9 @@ class FocusEvent extends Event
 		| `shiftKey` | `false`; applies only to `keyFocusChange` events. |
 		| `target` | The InteractiveObject instance that currently has focus. The `target` is not always the object in the display list that registered the event listener. Use the `currentTarget` property to access the object in the display list that is currently processing the event. |
 	**/
-	public static inline var MOUSE_FOCUS_CHANGE:String = "mouseFocusChange";
+	public static inline var MOUSE_FOCUS_CHANGE:EventType<FocusEvent> = "mouseFocusChange";
 
+	#if false
 	/**
 		If `true`, the `relatedObject` property is set to `null` for reasons
 		related to security sandboxes. If the nominal value of `relatedObject`
@@ -106,6 +108,7 @@ class FocusEvent extends Event
 		`LoaderContext.checkPolicyFile` property when loading the image.
 	**/
 	// @:noCompletion @:dox(hide) @:require(flash10) public var isRelatedObjectInaccessible:Bool;
+	#end
 
 	/**
 		The key code value of the key pressed to trigger a
@@ -134,6 +137,9 @@ class FocusEvent extends Event
 		`keyFocusChange`.
 	**/
 	public var shiftKey:Bool;
+
+	@:noCompletion private static var __pool:ObjectPool<FocusEvent> = new ObjectPool<FocusEvent>(function() return new FocusEvent(null),
+	function(event) event.__init());
 
 	/**
 		Creates an Event object with specific information relevant to focus
@@ -167,7 +173,7 @@ class FocusEvent extends Event
 		this.relatedObject = relatedObject;
 	}
 
-	public override function clone():Event
+	public override function clone():FocusEvent
 	{
 		var event = new FocusEvent(type, bubbles, cancelable, relatedObject, shiftKey, keyCode);
 		event.target = target;
@@ -179,6 +185,14 @@ class FocusEvent extends Event
 	public override function toString():String
 	{
 		return __formatToString("FocusEvent", ["type", "bubbles", "cancelable", "relatedObject", "shiftKey", "keyCode"]);
+	}
+
+	@:noCompletion private override function __init():Void
+	{
+		super.__init();
+		keyCode = 0;
+		shiftKey = false;
+		relatedObject = null;
 	}
 }
 #else

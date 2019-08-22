@@ -3,6 +3,7 @@ package openfl.ui;
 #if !flash
 import openfl.events.Event;
 import openfl.events.EventDispatcher;
+import openfl.events.EventType;
 import openfl.events.GameInputEvent;
 #if lime
 import lime.ui.Gamepad;
@@ -75,6 +76,7 @@ import lime.ui.GamepadButton;
 		`GameInputEvent.DEVICE_ADDED` event is fired.
 	**/
 	public static var numDevices(default, null) = 0;
+
 	@:noCompletion private static var __deviceList:Array<GameInputDevice> = new Array();
 	@:noCompletion private static var __instances:Array<GameInput> = [];
 	#if lime
@@ -89,7 +91,7 @@ import lime.ui.GamepadButton;
 	}
 
 	@SuppressWarnings("checkstyle:Dynamic")
-	public override function addEventListener(type:String, listener:Dynamic->Void, useCapture:Bool = false, priority:Int = 0,
+	public override function addEventListener<T>(type:EventType<T>, listener:T->Void, useCapture:Bool = false, priority:Int = 0,
 			useWeakReference:Bool = false):Void
 	{
 		super.addEventListener(type, listener, useCapture, priority, useWeakReference);

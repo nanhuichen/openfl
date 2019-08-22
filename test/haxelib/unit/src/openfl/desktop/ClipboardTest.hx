@@ -46,7 +46,7 @@ class ClipboardTest
 	#if (flash && !air)
 	@Ignore
 	#end
-	@AsyncTest public function getData()
+	@Test public function getData()
 	{
 		var textFormatData = 'Text Format Data';
 		var clipboard = Clipboard.generalClipboard;
@@ -106,10 +106,12 @@ class ClipboardTest
 	{
 		// TODO: Confirm functionality
 
+		#if !openfl_strict
 		var clipboard = Clipboard.generalClipboard;
 		var exists = clipboard.setDataHandler;
 
 		Assert.isNotNull(exists);
+		#end
 	}
 
 	// Properties
@@ -128,24 +130,24 @@ class ClipboardTest
 		#if (flash || !integration)
 		Assert.areEqual(1, clipboard.formats.length);
 		Assert.areEqual(1, clipboard.formats.filter(function(format:ClipboardFormats):Bool
-			{
-				return ClipboardFormats.HTML_FORMAT == format;
-			}).length);
+		{
+			return ClipboardFormats.HTML_FORMAT == format;
+		}).length);
 		#else
 		// TODO
 		Assert.areEqual(3, clipboard.formats.length);
 		Assert.areEqual(1, clipboard.formats.filter(function(format:ClipboardFormats):Bool
-			{
-				return ClipboardFormats.TEXT_FORMAT == format;
-			}).length);
+		{
+			return ClipboardFormats.TEXT_FORMAT == format;
+		}).length);
 		Assert.areEqual(1, clipboard.formats.filter(function(format:ClipboardFormats):Bool
-			{
-				return ClipboardFormats.HTML_FORMAT == format;
-			}).length);
+		{
+			return ClipboardFormats.HTML_FORMAT == format;
+		}).length);
 		Assert.areEqual(1, clipboard.formats.filter(function(format:ClipboardFormats):Bool
-			{
-				return ClipboardFormats.RICH_TEXT_FORMAT == format;
-			}).length);
+		{
+			return ClipboardFormats.RICH_TEXT_FORMAT == format;
+		}).length);
 		#end
 	}
 

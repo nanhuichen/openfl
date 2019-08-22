@@ -1,9 +1,6 @@
 package openfl.display;
 
 #if !flash
-import openfl._internal.renderer.cairo.CairoGraphics;
-import openfl._internal.renderer.canvas.CanvasGraphics;
-import openfl._internal.renderer.context3D.Context3DShape;
 import openfl.errors.ArgumentError;
 import openfl.errors.RangeError;
 import openfl.errors.TypeError;
@@ -96,10 +93,9 @@ class DisplayObjectContainer extends InteractiveObject
 	#if openfljs
 	@:noCompletion private static function __init__()
 	{
-		untyped Object.defineProperty(DisplayObjectContainer.prototype, "numChildren",
-			{
-				get: untyped __js__("function () { return this.get_numChildren (); }")
-			});
+		untyped Object.defineProperty(DisplayObjectContainer.prototype, "numChildren", {
+			get: untyped __js__("function () { return this.get_numChildren (); }")
+		});
 	}
 	#end
 
@@ -116,6 +112,8 @@ class DisplayObjectContainer extends InteractiveObject
 	@:noCompletion private function new()
 	{
 		super();
+
+		__type = DISPLAY_OBJECT_CONTAINER;
 
 		mouseChildren = true;
 		__tabChildren = true;
@@ -243,20 +241,19 @@ class DisplayObjectContainer extends InteractiveObject
 			child.__setRenderDirty();
 			__setRenderDirty();
 
-			var event:Event = null;
-
-			#if openfl_pool_events
-			event = Event.__pool.get(Event.ADDED);
-			event.bubbles = true;
+			#if !openfl_disable_event_pooling
+			var event = Event.__pool.get();
+			event.type = Event.ADDED;
 			#else
-			event = new Event(Event.ADDED, true);
+			var event = new Event(Event.ADDED);
 			#end
+			event.bubbles = true;
 
 			event.target = child;
 
 			child.__dispatchWithCapture(event);
 
-			#if openfl_pool_events
+			#if !openfl_disable_event_pooling
 			Event.__pool.release(event);
 			#end
 
@@ -622,7 +619,7 @@ class DisplayObjectContainer extends InteractiveObject
 	}
 
 	/**
-		Swaps the z-order(front-to-back order) of the two specified child
+		Swaps the z-order (front-to-back order) of the two specified child
 		objects. All other child objects in the display object container remain in
 		the same index positions.
 
@@ -646,7 +643,7 @@ class DisplayObjectContainer extends InteractiveObject
 	}
 
 	/**
-		Swaps the z-order(front-to-back order) of the child objects at the two
+		Swaps the z-order (front-to-back order) of the child objects at the two
 		specified index positions in the child list. All other child objects in
 		the display object container remain in the same index positions.
 
@@ -901,222 +898,6 @@ class DisplayObjectContainer extends InteractiveObject
 		}
 	}
 
-	@:noCompletion private override function __renderCairo(renderer:CairoRenderer):Void
-	{
-		#if lime_cairo
-		__cleanupRemovedChildren();
-
-		if (!__renderable || __worldAlpha <= 0) return;
-
-		super.__renderCairo(renderer);
-
-		if (__cacheBitmap != null && !__isCacheBitmapRender) return;
-
-		renderer.__pushMaskObject(this);
-
-		if (renderer.__stage != null)
-		{
-			for (child in __children)
-			{
-				child.__renderCairo(renderer);
-				child.__renderDirty = false;
-			}
-
-			__renderDirty = false;
-		}
-		else
-		{
-			for (child in __children)
-			{
-				child.__renderCairo(renderer);
-			}
-		}
-
-		renderer.__popMaskObject(this);
-		#end
-	}
-
-	@:noCompletion private override function __renderCairoMask(renderer:CairoRenderer):Void
-	{
-		#if lime_cairo
-		__cleanupRemovedChildren();
-
-		if (__graphics != null)
-		{
-			CairoGraphics.renderMask(__graphics, renderer);
-		}
-
-		for (child in __children)
-		{
-			child.__renderCairoMask(renderer);
-		}
-		#end
-	}
-
-	@:noCompletion private override function __renderCanvas(renderer:CanvasRenderer):Void
-	{
-		__cleanupRemovedChildren();
-
-		if (!__renderable || __worldAlpha <= 0 || (mask != null && (mask.width <= 0 || mask.height <= 0))) return;
-
-		#if !neko
-		super.__renderCanvas(renderer);
-
-		if (__cacheBitmap != null && !__isCacheBitmapRender) return;
-
-		renderer.__pushMaskObject(this);
-
-		if (renderer.__stage != null)
-		{
-			for (child in __children)
-			{
-				child.__renderCanvas(renderer);
-				child.__renderDirty = false;
-			}
-
-			__renderDirty = false;
-		}
-		else
-		{
-			for (child in __children)
-			{
-				child.__renderCanvas(renderer);
-			}
-		}
-
-		renderer.__popMaskObject(this);
-		#end
-	}
-
-	@:noCompletion private override function __renderCanvasMask(renderer:CanvasRenderer):Void
-	{
-		__cleanupRemovedChildren();
-
-		if (__graphics != null)
-		{
-			CanvasGraphics.renderMask(__graphics, renderer);
-		}
-
-		for (child in __children)
-		{
-			child.__renderCanvasMask(renderer);
-		}
-	}
-
-	@:noCompletion private override function __renderDOM(renderer:DOMRenderer):Void
-	{
-		for (orphan in __removedChildren)
-		{
-			if (orphan.stage == null)
-			{
-				orphan.__renderDOM(renderer);
-			}
-		}
-
-		__cleanupRemovedChildren();
-
-		super.__renderDOM(renderer);
-
-		if (__cacheBitmap != null && !__isCacheBitmapRender) return;
-
-		renderer.__pushMaskObject(this);
-
-		if (renderer.__stage != null)
-		{
-			for (child in __children)
-			{
-				child.__renderDOM(renderer);
-				child.__renderDirty = false;
-			}
-
-			__renderDirty = false;
-		}
-		else
-		{
-			for (child in __children)
-			{
-				child.__renderDOM(renderer);
-			}
-		}
-
-		renderer.__popMaskObject(this);
-	}
-
-	@:noCompletion private override function __renderDOMClear(renderer:DOMRenderer):Void
-	{
-		for (orphan in __removedChildren)
-		{
-			if (orphan.stage == null)
-			{
-				orphan.__renderDOMClear(renderer);
-			}
-		}
-
-		__cleanupRemovedChildren();
-
-		for (child in __children)
-		{
-			child.__renderDOMClear(renderer);
-		}
-	}
-
-	@:noCompletion private override function __renderGL(renderer:OpenGLRenderer):Void
-	{
-		__cleanupRemovedChildren();
-
-		if (!__renderable || __worldAlpha <= 0) return;
-
-		super.__renderGL(renderer);
-
-		if (__cacheBitmap != null && !__isCacheBitmapRender) return;
-
-		if (__children.length > 0)
-		{
-			renderer.__pushMaskObject(this);
-			// renderer.filterManager.pushObject (this);
-
-			if (renderer.__stage != null)
-			{
-				for (child in __children)
-				{
-					child.__renderGL(renderer);
-					child.__renderDirty = false;
-				}
-
-				__renderDirty = false;
-			}
-			else
-			{
-				for (child in __children)
-				{
-					child.__renderGL(renderer);
-				}
-			}
-		}
-
-		if (__children.length > 0)
-		{
-			// renderer.filterManager.popObject (this);
-			renderer.__popMaskObject(this);
-		}
-	}
-
-	@:noCompletion private override function __renderGLMask(renderer:OpenGLRenderer):Void
-	{
-		__cleanupRemovedChildren();
-
-		if (__graphics != null)
-		{
-			// Context3DGraphics.renderMask (__graphics, renderer);
-			Context3DShape.renderMask(this, renderer);
-		}
-
-		for (child in __children)
-		{
-			child.__renderGLMask(renderer);
-		}
-	}
-
 	@:noCompletion private override function __setStageReference(stage:Stage):Void
 	{
 		super.__setStageReference(stage);
@@ -1144,24 +925,6 @@ class DisplayObjectContainer extends InteractiveObject
 				}
 			}
 		}
-	}
-
-	@:noCompletion private override function __shouldCacheHardware(value:Null<Bool>):Null<Bool>
-	{
-		if (value == true) return true;
-		value = super.__shouldCacheHardware(value);
-		if (value == true) return true;
-
-		if (__children != null)
-		{
-			for (child in __children)
-			{
-				value = child.__shouldCacheHardware(value);
-				if (value == true) return true;
-			}
-		}
-
-		return value;
 	}
 
 	@:noCompletion private override function __stopAllMovieClips():Void

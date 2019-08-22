@@ -25,9 +25,12 @@ import openfl.Assets;
 	public var root:SpriteSymbol;
 	public var symbols:Map<Int, SWFSymbol>;
 
+	private var symbolsByClassName:Map<String, SWFSymbol>;
+
 	public function new()
 	{
 		symbols = new Map<Int, SWFSymbol>();
+		symbolsByClassName = new Map<String, SWFSymbol>();
 
 		// distinction of symbol by class name and characters by ID somewhere?
 	}
@@ -45,14 +48,12 @@ import openfl.Assets;
 		}
 		else
 		{
-			for (symbol in symbols)
+			var symbol = symbolsByClassName.get(className);
+			if (symbol != null)
 			{
-				if (symbol.className == className)
+				if (Std.is(symbol, SpriteSymbol))
 				{
-					if (Std.is(symbol, SpriteSymbol))
-					{
-						return cast(symbol, SpriteSymbol).__createObject(this);
-					}
+					return cast(symbol, SpriteSymbol).__createObject(this);
 				}
 			}
 		}
@@ -62,15 +63,14 @@ import openfl.Assets;
 
 	public function getBitmapData(className:String):BitmapData
 	{
-		for (symbol in symbols)
+		var symbol = symbolsByClassName.get(className);
+
+		if (symbol != null)
 		{
-			if (symbol.className == className)
+			if (Std.is(symbol, BitmapSymbol))
 			{
-				if (Std.is(symbol, BitmapSymbol))
-				{
-					var bitmap:BitmapSymbol = cast symbol;
-					return Assets.getBitmapData(bitmap.path);
-				}
+				var bitmap:BitmapSymbol = cast symbol;
+				return Assets.getBitmapData(bitmap.path);
 			}
 		}
 
@@ -79,15 +79,7 @@ import openfl.Assets;
 
 	public function hasSymbol(className:String):Bool
 	{
-		for (symbol in symbols)
-		{
-			if (symbol.className == className)
-			{
-				return true;
-			}
-		}
-
-		return false;
+		return symbolsByClassName.exists(className);
 	}
 
 	@SuppressWarnings("checkstyle:Dynamic")
@@ -149,6 +141,24 @@ import openfl.Assets;
 		var unserializer = new Unserializer(data);
 		unserializer.setResolver({resolveClass: resolveClass, resolveEnum: resolveEnum});
 
-		return cast unserializer.unserialize();
+		var swfLite:SWFLite = cast unserializer.unserialize();
+		if (swfLite != null)
+		{
+			swfLite.__init();
+		}
+
+		return swfLite;
+	}
+
+	private function __init():Void
+	{
+		if (symbols == null) return;
+		if (symbolsByClassName == null) symbolsByClassName = new Map<String, SWFSymbol>();
+
+		for (symbol in symbols)
+		{
+			if (symbol == null || symbol.className == null) continue;
+			symbolsByClassName.set(symbol.className, symbol);
+		}
 	}
 }

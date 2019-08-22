@@ -1,8 +1,6 @@
 package openfl.display;
 
 #if !flash
-import openfl._internal.renderer.cairo.CairoGraphics;
-import openfl._internal.renderer.canvas.CanvasGraphics;
 import openfl._internal.renderer.context3D.Context3DBuffer;
 import openfl._internal.renderer.DrawCommandBuffer;
 import openfl._internal.renderer.DrawCommandReader;
@@ -18,6 +16,11 @@ import openfl.geom.Rectangle;
 import openfl.Vector;
 #if lime
 import lime.graphics.cairo.Cairo;
+#if (js && html5)
+import openfl._internal.renderer.canvas.CanvasGraphics;
+#elseif lime_cffi
+import openfl._internal.renderer.cairo.CairoGraphics;
+#end
 #end
 #if (js && html5)
 import js.html.CanvasElement;
@@ -489,9 +492,8 @@ import js.html.CanvasRenderingContext2D;
 		ix1 = anchorX;
 		ix2 = anchorX;
 
-		if (
-			!(((controlX1 < anchorX && controlX1 > __positionX) || (controlX1 > anchorX && controlX1 < __positionX)) && ((controlX2 < anchorX && controlX2 > __positionX) || (controlX2 > anchorX && controlX2 < __positionX)))
-		)
+		if (!(((controlX1 < anchorX && controlX1 > __positionX) || (controlX1 > anchorX && controlX1 < __positionX))
+			&& ((controlX2 < anchorX && controlX2 > __positionX) || (controlX2 > anchorX && controlX2 < __positionX))))
 		{
 			var u = (2 * __positionX - 4 * controlX1 + 2 * controlX2);
 			var v = (controlX1 - __positionX);
@@ -514,9 +516,8 @@ import js.html.CanvasRenderingContext2D;
 		iy1 = anchorY;
 		iy2 = anchorY;
 
-		if (
-			!(((controlY1 < anchorY && controlY1 > __positionX) || (controlY1 > anchorY && controlY1 < __positionX)) && ((controlY2 < anchorY && controlY2 > __positionX) || (controlY2 > anchorY && controlY2 < __positionX)))
-		)
+		if (!(((controlY1 < anchorY && controlY1 > __positionX) || (controlY1 > anchorY && controlY1 < __positionX))
+			&& ((controlY2 < anchorY && controlY2 > __positionX) || (controlY2 > anchorY && controlY2 < __positionX))))
 		{
 			var u = (2 * __positionX - 4 * controlY1 + 2 * controlY2);
 			var v = (controlY1 - __positionX);
@@ -874,20 +875,20 @@ import js.html.CanvasRenderingContext2D;
 
 		The optional `indices` parameter allows the use of either repeated
 		rectangle geometry, or allows the use of a subset of a broader rectangle
-		data `Vector`, such as `tileset.rectData`.
+		data Vector, such as Tileset `rectData`.
 
-		@param rects A `Vector` containing rectangle coordinates in
+		@param rects A Vector containing rectangle coordinates in
 					 [ x0, y0, width0, height0, x1, y1 ... ] format.
-		@param indices A `Vector` containing optional index values to reference
+		@param indices A Vector containing optional index values to reference
 					   the data contained in `rects`. Each index is a rectangle
-					   index in the `Vector`, not an array index. If this parameter
+					   index in the Vector, not an array index. If this parameter
 					   is ommitted, each index from `rects` will be used in order.
-		@param transforms A `Vector` containing optional transform data to adjust
+		@param transforms A Vector containing optional transform data to adjust
 						  _x_, _y_, _a_, _b_, _c_ or _d_ value for the resulting
-						  quadrilateral. A `transforms` `Vector` that is double
+						  quadrilateral. A `transforms` Vector that is double the
 						  size of the draw count (the length of `indices`, or if
 						  omitted, the rectangle count in `rects`) will be treated
-						  as [ x, y, ... ] pairs. A `transforms` `Vector` that is
+						  as [ x, y, ... ] pairs. A `transforms` Vector that is
 						  four times the size of the draw count will be used as
 						  matrix [ a, b, c, d, ... ] values. A `transforms` object
 						  which is six times the draw count in size will use full
@@ -1948,9 +1949,12 @@ import js.html.CanvasRenderingContext2D;
 		__renderTransform.tx = __worldTransform.__transformInverseX(tx, ty);
 		__renderTransform.ty = __worldTransform.__transformInverseY(tx, ty);
 
-		// Calculate the size to contain the graphics and the extra subpixel
-		var newWidth = Math.ceil(width + __renderTransform.tx);
-		var newHeight = Math.ceil(height + __renderTransform.ty);
+		// Calculate the size to contain the graphics and an extra subpixel
+		// We used to add tx and ty from __renderTransform instead of 1.0
+		// but it improves performance if we keep the size consistent when the
+		// extra pixel isn't needed
+		var newWidth = Math.ceil(width + 1.0);
+		var newHeight = Math.ceil(height + 1.0);
 
 		// Mark dirty if render size changed
 		if (newWidth != __width || newHeight != __height)

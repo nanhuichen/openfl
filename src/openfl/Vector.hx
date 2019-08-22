@@ -166,7 +166,7 @@ abstract Vector<T>(IVector<T>)
 		(`false`). This value can also be set using the fixed property.
 	**/
 	#if !flash
-	public function new(length:Int = 0, fixed:Bool = false, array:Array<T> = null):Void;
+	public function new(length:Null<Int> = 0, fixed:Null<Bool> = false, array:Array<T> = null):Void;
 	#else
 	public function new(length:Null<Int> = 0, fixed:Null<Bool> = false, array:Array<T> = null):Void
 	{
@@ -200,6 +200,18 @@ abstract Vector<T>(IVector<T>)
 	public inline function copy():Vector<T>
 	{
 		return cast this.copy();
+	}
+
+	/**
+		Executes a test function on each item in the Vector and returns a new Vector
+		containing all items that return true for the specified function. If an item
+		returns false, it is not included in the result Vector. The base type of the return
+		Vector matches the base type of the Vector on which the method is called.
+		@param	callback	The function to run on each item in the Vector.
+	**/
+	#if (openfl < "9.0.0") @:dox(hide) #end public inline function filter(callback:T->Bool):Vector<T>
+	{
+		return cast this.filter(cast callback);
 	}
 
 	/**
@@ -543,8 +555,8 @@ abstract Vector<T>(IVector<T>)
 	}
 
 	#if !cs
-	@:to #if (!js && !flash) inline #end private static function toFunctionVector<T:Function>
-		(t:IVector<T>, length:Int, fixed:Bool, array:Array<T>):FunctionVector
+	@:to #if (!js && !flash) inline #end private static function toFunctionVector<T:Function>(t:IVector<T>, length:Int, fixed:Bool,
+			array:Array<T>):FunctionVector
 	{
 		return new FunctionVector(length, fixed, cast array);
 	}
@@ -641,7 +653,7 @@ abstract Vector<T>(IVector<T>)
 	{
 		if (a == null)
 		{
-			return new BoolVector(__array.copy());
+			return new BoolVector(0, false, __array.copy());
 		}
 		else
 		{
@@ -649,18 +661,23 @@ abstract Vector<T>(IVector<T>)
 
 			if (other.__array.length > 0)
 			{
-				return new BoolVector(__array.concat(other.__array));
+				return new BoolVector(0, false, __array.concat(other.__array));
 			}
 			else
 			{
-				return new BoolVector(__array.copy());
+				return new BoolVector(0, false, __array.copy());
 			}
 		}
 	}
 
 	public function copy():IVector<Bool>
 	{
-		return new BoolVector(fixed, __array.copy());
+		return new BoolVector(0, fixed, __array.copy());
+	}
+
+	public function filter(callback:Bool->Bool):IVector<Bool>
+	{
+		return new BoolVector(0, fixed, __array.filter(callback));
 	}
 
 	public function get(index:Int):Bool
@@ -786,7 +803,7 @@ abstract Vector<T>(IVector<T>)
 	public function slice(startIndex:Int = 0, endIndex:Null<Int> = null):IVector<Bool>
 	{
 		if (endIndex == null) endIndex = 16777215;
-		return new BoolVector(__array.slice(startIndex, endIndex));
+		return new BoolVector(0, false, __array.slice(startIndex, endIndex));
 	}
 
 	public function sort(f:Bool->Bool->Int):Void
@@ -796,7 +813,7 @@ abstract Vector<T>(IVector<T>)
 
 	public function splice(pos:Int, len:Int):IVector<Bool>
 	{
-		return new BoolVector(__array.splice(pos, len));
+		return new BoolVector(0, false, __array.splice(pos, len));
 	}
 
 	@SuppressWarnings("checkstyle:Dynamic")
@@ -894,7 +911,7 @@ abstract Vector<T>(IVector<T>)
 	{
 		if (a == null)
 		{
-			return new FloatVector(__array.copy());
+			return new FloatVector(0, false, __array.copy());
 		}
 		else
 		{
@@ -902,18 +919,23 @@ abstract Vector<T>(IVector<T>)
 
 			if (other.__array.length > 0)
 			{
-				return new FloatVector(__array.concat(other.__array));
+				return new FloatVector(0, false, __array.concat(other.__array));
 			}
 			else
 			{
-				return new FloatVector(__array.copy());
+				return new FloatVector(0, false, __array.copy());
 			}
 		}
 	}
 
 	public function copy():IVector<Float>
 	{
-		return new FloatVector(fixed, __array.copy());
+		return new FloatVector(0, fixed, __array.copy());
+	}
+
+	public function filter(callback:Float->Bool):IVector<Float>
+	{
+		return new FloatVector(0, fixed, __array.filter(callback));
 	}
 
 	public function get(index:Int):Float
@@ -1032,7 +1054,7 @@ abstract Vector<T>(IVector<T>)
 	public function slice(startIndex:Int = 0, endIndex:Null<Int> = null):IVector<Float>
 	{
 		if (endIndex == null) endIndex = 16777215;
-		return new FloatVector(__array.slice(startIndex, endIndex));
+		return new FloatVector(0, false, __array.slice(startIndex, endIndex));
 	}
 
 	public function sort(f:Float->Float->Int):Void
@@ -1042,7 +1064,7 @@ abstract Vector<T>(IVector<T>)
 
 	public function splice(pos:Int, len:Int):IVector<Float>
 	{
-		return new FloatVector(__array.splice(pos, len));
+		return new FloatVector(0, false, __array.splice(pos, len));
 	}
 
 	@SuppressWarnings("checkstyle:Dynamic")
@@ -1138,7 +1160,7 @@ abstract Vector<T>(IVector<T>)
 	{
 		if (a == null)
 		{
-			return new FunctionVector(__array.copy());
+			return new FunctionVector(0, false, __array.copy());
 		}
 		else
 		{
@@ -1146,18 +1168,23 @@ abstract Vector<T>(IVector<T>)
 
 			if (other.__array.length > 0)
 			{
-				return new FunctionVector(__array.concat(other.__array));
+				return new FunctionVector(0, false, __array.concat(other.__array));
 			}
 			else
 			{
-				return new FunctionVector(__array.copy());
+				return new FunctionVector(0, false, __array.copy());
 			}
 		}
 	}
 
 	public function copy():IVector<Function>
 	{
-		return new FunctionVector(fixed, __array.copy());
+		return new FunctionVector(0, fixed, __array.copy());
+	}
+
+	public function filter(callback:Function->Bool):IVector<Function>
+	{
+		return new FunctionVector(0, fixed, __array.filter(callback));
 	}
 
 	public function get(index:Int):Function
@@ -1283,7 +1310,7 @@ abstract Vector<T>(IVector<T>)
 	public function slice(startIndex:Int = 0, endIndex:Null<Int> = null):IVector<Function>
 	{
 		if (endIndex == null) endIndex = 16777215;
-		return new FunctionVector(__array.slice(startIndex, endIndex));
+		return new FunctionVector(0, false, __array.slice(startIndex, endIndex));
 	}
 
 	public function sort(f:Function->Function->Int):Void
@@ -1293,7 +1320,7 @@ abstract Vector<T>(IVector<T>)
 
 	public function splice(pos:Int, len:Int):IVector<Function>
 	{
-		return new FunctionVector(__array.splice(pos, len));
+		return new FunctionVector(0, false, __array.splice(pos, len));
 	}
 
 	@SuppressWarnings("checkstyle:Dynamic")
@@ -1382,7 +1409,7 @@ abstract Vector<T>(IVector<T>)
 	{
 		if (a == null)
 		{
-			return new IntVector(__array.copy());
+			return new IntVector(0, false, __array.copy());
 		}
 		else
 		{
@@ -1390,18 +1417,23 @@ abstract Vector<T>(IVector<T>)
 
 			if (other.__array.length > 0)
 			{
-				return new IntVector(__array.concat(other.__array));
+				return new IntVector(0, false, __array.concat(other.__array));
 			}
 			else
 			{
-				return new IntVector(__array.copy());
+				return new IntVector(0, false, __array.copy());
 			}
 		}
 	}
 
 	public function copy():IVector<Int>
 	{
-		return new IntVector(fixed, __array.copy());
+		return new IntVector(0, fixed, __array.copy());
+	}
+
+	public function filter(callback:Int->Bool):IVector<Int>
+	{
+		return new IntVector(0, fixed, __array.filter(callback));
 	}
 
 	public function get(index:Int):Int
@@ -1520,7 +1552,7 @@ abstract Vector<T>(IVector<T>)
 	public function slice(startIndex:Int = 0, endIndex:Null<Int> = null):IVector<Int>
 	{
 		if (endIndex == null) endIndex = 16777215;
-		return new IntVector(__array.slice(startIndex, endIndex));
+		return new IntVector(0, false, __array.slice(startIndex, endIndex));
 	}
 
 	public function sort(f:Int->Int->Int):Void
@@ -1530,7 +1562,7 @@ abstract Vector<T>(IVector<T>)
 
 	public function splice(pos:Int, len:Int):IVector<Int>
 	{
-		return new IntVector(__array.splice(pos, len));
+		return new IntVector(0, false, __array.splice(pos, len));
 	}
 
 	@SuppressWarnings("checkstyle:Dynamic")
@@ -1629,7 +1661,7 @@ abstract Vector<T>(IVector<T>)
 	{
 		if (a == null)
 		{
-			return new ObjectVector(__array.copy());
+			return new ObjectVector(0, false, __array.copy());
 		}
 		else
 		{
@@ -1637,18 +1669,23 @@ abstract Vector<T>(IVector<T>)
 
 			if (other.__array.length > 0)
 			{
-				return new ObjectVector(__array.concat(cast other.__array));
+				return new ObjectVector(0, false, __array.concat(cast other.__array));
 			}
 			else
 			{
-				return new ObjectVector(__array.copy());
+				return new ObjectVector(0, false, __array.copy());
 			}
 		}
 	}
 
 	public function copy():IVector<T>
 	{
-		return new ObjectVector(__array.copy());
+		return new ObjectVector(0, fixed, __array.copy());
+	}
+
+	public function filter(callback:T->Bool):IVector<T>
+	{
+		return new ObjectVector(0, fixed, __array.filter(callback));
 	}
 
 	public function get(index:Int):T
@@ -1767,7 +1804,7 @@ abstract Vector<T>(IVector<T>)
 	public function slice(startIndex:Int = 0, endIndex:Null<Int> = null):IVector<T>
 	{
 		if (endIndex == null) endIndex = 16777215;
-		return new ObjectVector(__array.slice(startIndex, endIndex));
+		return new ObjectVector(0, false, __array.slice(startIndex, endIndex));
 	}
 
 	public function sort(f:T->T->Int):Void
@@ -1777,7 +1814,7 @@ abstract Vector<T>(IVector<T>)
 
 	public function splice(pos:Int, len:Int):IVector<T>
 	{
-		return new ObjectVector(__array.splice(pos, len));
+		return new ObjectVector(0, false, __array.splice(pos, len));
 	}
 
 	@SuppressWarnings("checkstyle:Dynamic")
@@ -1844,6 +1881,7 @@ abstract Vector<T>(IVector<T>)
 	public var length(get, set):Int;
 	public function concat(vec:IVector<T> = null):IVector<T>;
 	public function copy():IVector<T>;
+	public function filter(callback:T->Bool):IVector<T>;
 	public function get(index:Int):T;
 	public function indexOf(x:T, from:Int = 0):Int;
 	public function insertAt(index:Int, element:T):Void;
@@ -1896,6 +1934,11 @@ abstract Vector<T>(VectorData<T>) from VectorData<T>
 	{
 		// return cast this.copy ();
 		return VectorData.ofArray(cast this);
+	}
+
+	public function filter(callback:T->Bool):Vector<T>
+	{
+		return VectorData.ofArray(untyped __js__("Array.prototype.filter.call")(this, callback));
 	}
 
 	@:arrayAccess public inline function get(index:Int):T
@@ -2093,6 +2136,7 @@ abstract Vector<T>(VectorData<T>) from VectorData<T>
 			constructor: { value: null },
 			concat: { value: p.concat },
 			copy: { value: p.copy },
+			filter: { value: p.filter },
 			get: { value: p.get },
 			insertAt: { value: p.insertAt },
 			iterator: { value: p.iterator },
@@ -2152,6 +2196,11 @@ abstract Vector<T>(VectorData<T>) from VectorData<T>
 	public function copy():VectorData<T>
 	{
 		return VectorData.ofArray(cast this);
+	}
+
+	public function filter(callback:T->Bool):Vector<T>
+	{
+		return VectorData.ofArray(untyped __js__("Array.prototype.filter.call (this, callback)"));
 	}
 
 	public function get(index:Int):T
@@ -2368,6 +2417,7 @@ abstract Vector<T>(VectorData<T>) from VectorData<T>
 // 	public function unshift (x:T):Void;
 // 	@:native("values") private function __values ():Iterator<T>;
 // }
+
 @SuppressWarnings("checkstyle:FieldDocComment")
 @:dox(hide) private class VectorIterator<T>
 {
@@ -2433,6 +2483,21 @@ abstract Vector<T>(VectorData<T>)
 		for (i in 0...this.length)
 		{
 			vec[i] = this[i];
+		}
+
+		return vec;
+	}
+
+	public inline function filter(callback:T->Bool):Vector<T>
+	{
+		var vec = new VectorData<T>();
+
+		for (i in 0...this.length)
+		{
+			if (callback(this[i]))
+			{
+				vec.push(this[i]);
+			}
 		}
 
 		return vec;

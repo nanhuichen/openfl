@@ -12,14 +12,16 @@ import openfl.net.URLRequest;
 #if lime
 import lime.system.System;
 #end
-#if swf
+// #if swf
 // Workaround to keep SWFLibrary/SWFLiteLibrary types available
+import openfl._internal.formats.animate.AnimateLibrary;
 #if flash
 import openfl._internal.formats.swf.SWFLibrary;
+// import openfl._internal.formats.swf.SWFLiteLibrary;
 #else
 import openfl._internal.formats.swf.SWFLiteLibrary;
 #end
-#end
+// #end
 #if (js && html5)
 import js.Browser;
 #end
@@ -42,23 +44,20 @@ import js.Browser;
 	#if openfljs
 	@:noCompletion private static function __init__()
 	{
-		untyped Object.defineProperties(Lib,
-			{
-				"application":
-					{
-						get: function()
-						{
-							return Lib.get_application();
-						}
-					},
-				"current":
-					{
-						get: function()
-						{
-							return Lib.get_current();
-						}
-					}
-			});
+		untyped Object.defineProperties(Lib, {
+			"application": {
+				get: function()
+				{
+					return Lib.get_application();
+				}
+			},
+			"current": {
+				get: function()
+				{
+					return Lib.get_current();
+				}
+			}
+		});
 	}
 	#end
 
@@ -591,6 +590,7 @@ import js.Browser;
 		return InternalLib.current;
 		#end
 	}
+
 	// @:noCompletion private static function set_current (current:MovieClip):MovieClip {
 	// 	return cast flash.Lib.current = cast current;
 	// }

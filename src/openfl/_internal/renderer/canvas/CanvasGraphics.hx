@@ -1,7 +1,6 @@
 package openfl._internal.renderer.canvas;
 
 import openfl.display.BitmapData;
-import openfl.display.CanvasRenderer;
 import openfl.display.CapsStyle;
 import openfl._internal.renderer.DrawCommandBuffer;
 import openfl._internal.renderer.DrawCommandReader;
@@ -105,7 +104,10 @@ class CanvasGraphics
 			spreadMethod:SpreadMethod, interpolationMethod:InterpolationMethod, focalPointRatio:Float):#if (js && html5) CanvasPattern #else Void #end
 	{
 		#if (js && html5)
-		var gradientFill = null, point = null, point2 = null, releaseMatrix = false;
+		var gradientFill = null,
+			point = null,
+			point2 = null,
+			releaseMatrix = false;
 
 		if (matrix == null)
 		{
@@ -194,8 +196,12 @@ class CanvasGraphics
 		if (ellipseWidth > width / 2) ellipseWidth = width / 2;
 		if (ellipseHeight > height / 2) ellipseHeight = height / 2;
 
-		var xe = x + width, ye = y + height, cx1 = -ellipseWidth + (ellipseWidth * SIN45), cx2 = -ellipseWidth + (ellipseWidth * TAN22), cy1 = -ellipseHeight +
-			(ellipseHeight * SIN45), cy2 = -ellipseHeight + (ellipseHeight * TAN22);
+		var xe = x + width,
+			ye = y + height,
+			cx1 = -ellipseWidth + (ellipseWidth * SIN45),
+			cx2 = -ellipseWidth + (ellipseWidth * TAN22),
+			cy1 = -ellipseHeight + (ellipseHeight * SIN45),
+			cy2 = -ellipseHeight + (ellipseHeight * TAN22);
 
 		context.moveTo(xe, ye - ellipseHeight);
 		context.quadraticCurveTo(xe, ye + cy2, xe + cx1, ye + cy1);
@@ -520,8 +526,28 @@ class CanvasGraphics
 
 		var data = new DrawCommandReader(commands);
 
-		var x, y, width, height, kappa = .5522848, ox, oy, xe, ye, xm, ym, r, g, b;
-		var optimizationUsed, canOptimizeMatrix, st:Float, sr:Float, sb:Float, sl:Float, stl = null, sbr = null;
+		var x,
+			y,
+			width,
+			height,
+			kappa = .5522848,
+			ox,
+			oy,
+			xe,
+			ye,
+			xm,
+			ym,
+			r,
+			g,
+			b;
+		var optimizationUsed,
+			canOptimizeMatrix,
+			st:Float,
+			sr:Float,
+			sb:Float,
+			sl:Float,
+			stl = null,
+			sbr = null;
 
 		for (type in commands.types)
 		{
@@ -530,8 +556,14 @@ class CanvasGraphics
 				case CUBIC_CURVE_TO:
 					var c = data.readCubicCurveTo();
 					hasPath = true;
-					context.bezierCurveTo(c.controlX1 - offsetX, c.controlY1 - offsetY, c.controlX2 - offsetX, c.controlY2 - offsetY, c.anchorX - offsetX,
-						c.anchorY - offsetY);
+					context.bezierCurveTo(c.controlX1
+						- offsetX, c.controlY1
+						- offsetY, c.controlX2
+						- offsetX, c.controlY2
+						- offsetY, c.anchorX
+						- offsetX,
+						c.anchorY
+						- offsetY);
 
 				case CURVE_TO:
 					var c = data.readCurveTo();
@@ -620,10 +652,10 @@ class CanvasGraphics
 
 						context.lineJoin = (c.joints == null ? "round" : Std.string(c.joints).toLowerCase());
 						context.lineCap = (c.caps == null ? "round" : switch (c.caps)
-							{
-								case CapsStyle.NONE: "butt";
-								default: Std.string(c.caps).toLowerCase();
-							});
+						{
+							case CapsStyle.NONE: "butt";
+							default: Std.string(c.caps).toLowerCase();
+						});
 
 						context.miterLimit = c.miterLimit;
 
@@ -791,8 +823,8 @@ class CanvasGraphics
 						if (transformABCD && transformXY)
 						{
 							ti = i * 6;
-							tileTransform
-								.setTo(transforms[ti], transforms[ti + 1], transforms[ti + 2], transforms[ti + 3], transforms[ti + 4], transforms[ti + 5]);
+							tileTransform.setTo(transforms[ti], transforms[ti + 1], transforms[ti + 2], transforms[ti + 3], transforms[ti + 4],
+								transforms[ti + 5]);
 						}
 						else if (transformABCD)
 						{
@@ -1031,7 +1063,8 @@ class CanvasGraphics
 						if (canOptimizeMatrix && st >= 0 && sl >= 0 && sr <= bitmapFill.width && sb <= bitmapFill.height)
 						{
 							optimizationUsed = true;
-							if (!hitTesting) context.drawImage(bitmapFill.image.src, sl, st, sr - sl, sb - st, c.x - offsetX, c.y - offsetY, c.width, c.height);
+							if (!hitTesting) context.drawImage(bitmapFill.image.src, sl, st, sr - sl, sb - st, c.x - offsetX, c.y - offsetY, c.width,
+								c.height);
 						}
 					}
 
@@ -1141,7 +1174,7 @@ class CanvasGraphics
 
 				renderer.__setBlendModeContext(context, NORMAL);
 
-				if (renderer.__isDOM)
+				if (renderer.__domRenderer != null)
 				{
 					if (canvas.width == scaledWidth && canvas.height == scaledHeight)
 					{
@@ -1156,8 +1189,8 @@ class CanvasGraphics
 					}
 
 					var transform = graphics.__renderTransform;
-					context.setTransform(transform.a * scale, transform.b * scale, transform.c * scale, transform.d * scale, transform.tx * scale, transform
-						.ty * scale);
+					context.setTransform(transform.a * scale, transform.b * scale, transform.c * scale, transform.d * scale, transform.tx * scale,
+						transform.ty * scale);
 				}
 				else
 				{
@@ -1445,8 +1478,14 @@ class CanvasGraphics
 				{
 					case CUBIC_CURVE_TO:
 						var c = data.readCubicCurveTo();
-						context.bezierCurveTo(c.controlX1 - offsetX, c.controlY1 - offsetY, c.controlX2 - offsetX, c.controlY2 - offsetY, c.anchorX - offsetX,
-							c.anchorY - offsetY);
+						context.bezierCurveTo(c.controlX1
+							- offsetX, c.controlY1
+							- offsetY, c.controlX2
+							- offsetX, c.controlY2
+							- offsetY, c.anchorX
+							- offsetX,
+							c.anchorY
+							- offsetY);
 						positionX = c.anchorX;
 						positionY = c.anchorY;
 

@@ -6,7 +6,6 @@ import openfl._internal.utils.Float32Array;
 import openfl._internal.utils.UInt16Array;
 import openfl.display.BitmapData;
 import openfl.display.Graphics;
-import openfl.display.OpenGLRenderer;
 import openfl.geom.ColorTransform;
 import openfl.geom.Matrix;
 import openfl.geom.Rectangle;
@@ -36,7 +35,7 @@ class Context3DGraphics
 	private static var maskRender:Bool;
 	private static var tempColorTransform = new ColorTransform(1, 1, 1, 1, 0, 0, 0, 0);
 
-	private static function buildBuffer(graphics:Graphics, renderer:OpenGLRenderer):Void
+	private static function buildBuffer(graphics:Graphics, renderer:Context3DRenderer):Void
 	{
 		var quadBufferPosition = 0;
 		var triangleIndexBufferPosition = 0;
@@ -45,7 +44,7 @@ class Context3DGraphics
 
 		var data = new DrawCommandReader(graphics.__commands);
 
-		var context = renderer.__context3D;
+		var context = renderer.context3D;
 
 		var tileRect = Rectangle.__pool.get();
 		var tileTransform = Matrix.__pool.get();
@@ -68,13 +67,18 @@ class Context3DGraphics
 					var c = data.readBeginShaderFill();
 					var shaderBuffer = c.shaderBuffer;
 
-					if (shaderBuffer == null || shaderBuffer.shader == null || shaderBuffer.shader.__bitmap == null)
+					bitmap = null;
+
+					if (shaderBuffer != null)
 					{
-						bitmap = null;
-					}
-					else
-					{
-						bitmap = c.shaderBuffer.shader.__bitmap.input;
+						for (i in 0...shaderBuffer.inputCount)
+						{
+							if (shaderBuffer.inputRefs[i].name == "bitmap")
+							{
+								bitmap = shaderBuffer.inputs[i];
+								break;
+							}
+						}
 					}
 
 				case DRAW_QUADS:
@@ -129,7 +133,10 @@ class Context3DGraphics
 						}
 
 						var vertexOffset, alpha = 1.0, tileData, id;
-						var bitmapWidth, bitmapHeight, tileWidth:Float, tileHeight:Float;
+						var bitmapWidth,
+							bitmapHeight,
+							tileWidth:Float,
+							tileHeight:Float;
 						var uvX, uvY, uvWidth, uvHeight;
 						var x, y, x2, y2, x3, y3, x4, y4;
 						var ri, ti;
@@ -173,8 +180,8 @@ class Context3DGraphics
 							if (transformABCD && transformXY)
 							{
 								ti = i * 6;
-								tileTransform
-									.setTo(transforms[ti], transforms[ti + 1], transforms[ti + 2], transforms[ti + 3], transforms[ti + 4], transforms[ti + 5]);
+								tileTransform.setTo(transforms[ti], transforms[ti + 1], transforms[ti + 2], transforms[ti + 3], transforms[ti + 4],
+									transforms[ti + 5]);
 							}
 							else if (transformABCD)
 							{
@@ -365,6 +372,11 @@ class Context3DGraphics
 		return true;
 		#end
 
+		if (graphics.__owner.__worldScale9Grid != null)
+		{
+			return false;
+		}
+
 		var data = new DrawCommandReader(graphics.__commands);
 		var hasColorFill = false, hasBitmapFill = false, hasShaderFill = false;
 
@@ -445,7 +457,7 @@ class Context3DGraphics
 		return true;
 	}
 
-	public static function render(graphics:Graphics, renderer:OpenGLRenderer):Void
+	public static function render(graphics:Graphics, renderer:Context3DRenderer):Void
 	{
 		if (!graphics.__visible || graphics.__commands.length == 0) return;
 
@@ -488,14 +500,15 @@ class Context3DGraphics
 
 			if (bounds != null && width >= 1 && height >= 1)
 			{
-				if (graphics.__hardwareDirty || (graphics.__quadBuffer == null && graphics.__vertexBuffer == null && graphics.__vertexBufferUVT == null))
+				if (graphics.__hardwareDirty
+					|| (graphics.__quadBuffer == null && graphics.__vertexBuffer == null && graphics.__vertexBufferUVT == null))
 				{
 					buildBuffer(graphics, renderer);
 				}
 
 				var data = new DrawCommandReader(graphics.__commands);
 
-				var context = renderer.__context3D;
+				var context = renderer.context3D;
 				var gl = context.gl;
 
 				var matrix = Matrix.__pool.get();
@@ -606,10 +619,10 @@ class Context3DGraphics
 										renderer.__updateShaderBuffer(shaderBufferOffset);
 									}
 
-									if (shader.__position != null) context.setVertexBufferAt(shader.__position.index, graphics.__quadBuffer
-										.vertexBuffer, quadBufferPosition * 16, FLOAT_2);
-									if (shader.__textureCoord != null) context.setVertexBufferAt(shader.__textureCoord.index, graphics.__quadBuffer
-										.vertexBuffer, (quadBufferPosition * 16) + 2, FLOAT_2);
+									if (shader.__position != null) context.setVertexBufferAt(shader.__position.index, graphics.__quadBuffer.vertexBuffer,
+										quadBufferPosition * 16, FLOAT_2);
+									if (shader.__textureCoord != null) context.setVertexBufferAt(shader.__textureCoord.index,
+										graphics.__quadBuffer.vertexBuffer, (quadBufferPosition * 16) + 2, FLOAT_2);
 
 									context.drawTriangles(context.__quadIndexBuffer, 0, length * 2);
 
@@ -717,10 +730,10 @@ class Context3DGraphics
 								renderer.updateShader();
 							}
 
-							if (shader.__position != null) context.setVertexBufferAt(shader.__position
-								.index, vertexBuffer, bufferPosition, hasUVTData ? FLOAT_4 : FLOAT_2);
-							if (shader.__textureCoord != null) context.setVertexBufferAt(shader.__textureCoord
-								.index, vertexBuffer, bufferPosition + vertLength, FLOAT_2);
+							if (shader.__position != null) context.setVertexBufferAt(shader.__position.index, vertexBuffer, bufferPosition,
+								hasUVTData ? FLOAT_4 : FLOAT_2);
+							if (shader.__textureCoord != null) context.setVertexBufferAt(shader.__textureCoord.index, vertexBuffer,
+								bufferPosition + vertLength, FLOAT_2);
 
 							switch (culling)
 							{
@@ -729,6 +742,9 @@ class Context3DGraphics
 
 								case NEGATIVE:
 									context.setCulling(BACK);
+
+								case NONE:
+									context.setCulling(NONE);
 
 								default:
 							}
@@ -754,9 +770,14 @@ class Context3DGraphics
 								vertexBufferPosition += (dataPerVertex * length);
 							}
 
-							if (culling != NONE)
+							// This code is here because other draw calls are not aware (currently) of the culling type and just generally expect it to use
+							// back face culling by default
+							switch (culling)
 							{
-								context.setCulling(BACK);
+								case POSITIVE, NONE:
+									context.setCulling(BACK);
+
+								default:
 							}
 
 							#if gl_stats
@@ -793,7 +814,7 @@ class Context3DGraphics
 		}
 	}
 
-	public static function renderMask(graphics:Graphics, renderer:OpenGLRenderer):Void
+	public static function renderMask(graphics:Graphics, renderer:Context3DRenderer):Void
 	{
 		// TODO: Support invisible shapes
 

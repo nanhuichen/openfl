@@ -1,6 +1,7 @@
 package openfl.events;
 
 #if !flash
+import openfl._internal.utils.ObjectPool;
 import openfl.net.URLRequestHeader;
 
 /**
@@ -49,7 +50,7 @@ class HTTPStatusEvent extends Event
 		| `status` | The HTTP status code returned by the server. |
 		| `target` | The network object receiving an HTTP status code. |
 	**/
-	public static inline var HTTP_RESPONSE_STATUS:String = "httpResponseStatus";
+	public static inline var HTTP_RESPONSE_STATUS:EventType<HTTPStatusEvent> = "httpResponseStatus";
 
 	/**
 		The `HTTPStatusEvent.HTTP_STATUS` constant defines the value of the
@@ -64,7 +65,7 @@ class HTTPStatusEvent extends Event
 		| `status` | The HTTP status code returned by the server. |
 		| `target` | The network object receiving an HTTP status code.  |
 	**/
-	public static inline var HTTP_STATUS:String = "httpStatus";
+	public static inline var HTTP_STATUS:EventType<HTTPStatusEvent> = "httpStatus";
 
 	/**
 		Indicates whether the request was redirected.
@@ -100,6 +101,9 @@ class HTTPStatusEvent extends Event
 	**/
 	public var status(default, null):Int;
 
+	@:noCompletion private static var __pool:ObjectPool<HTTPStatusEvent> = new ObjectPool<HTTPStatusEvent>(function() return new HTTPStatusEvent(null),
+	function(event) event.__init());
+
 	/**
 		Creates an Event object that contains specific information about HTTP
 		status events. Event objects are passed as parameters to event listeners.
@@ -126,7 +130,7 @@ class HTTPStatusEvent extends Event
 		super(type, bubbles, cancelable);
 	}
 
-	public override function clone():Event
+	public override function clone():HTTPStatusEvent
 	{
 		var event = new HTTPStatusEvent(type, bubbles, cancelable, status, redirected);
 		event.target = target;
@@ -138,6 +142,13 @@ class HTTPStatusEvent extends Event
 	public override function toString():String
 	{
 		return __formatToString("HTTPStatusEvent", ["type", "bubbles", "cancelable", "status", "redirected"]);
+	}
+
+	@:noCompletion private override function __init():Void
+	{
+		super.__init();
+		status = 0;
+		redirected = false;
 	}
 }
 #else

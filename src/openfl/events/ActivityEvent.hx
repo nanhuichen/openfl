@@ -1,6 +1,8 @@
 package openfl.events;
 
 #if !flash
+import openfl._internal.utils.ObjectPool;
+
 /**
 	A Camera or Microphone object dispatches an ActivityEvent object whenever
 	a camera or microphone reports that it has become active or inactive.
@@ -26,13 +28,16 @@ class ActivityEvent extends Event
 		| `currentTarget` | The object that is actively processing the Event object with an event listener. |
 		| `target` | The object beginning or ending a session, such as a Camera or Microphone object. |
 	**/
-	public static inline var ACTIVITY:String = "activity";
+	public static inline var ACTIVITY:EventType<ActivityEvent> = "activity";
 
 	/**
 		Indicates whether the device is activating (`true`) or deactivating
 		(`false`).
 	**/
 	public var activating:Bool;
+
+	@:noCompletion private static var __pool:ObjectPool<ActivityEvent> = new ObjectPool<ActivityEvent>(function() return new ActivityEvent(null),
+	function(event) event.__init());
 
 	/**
 		Creates an event object that contains information about activity
@@ -61,7 +66,7 @@ class ActivityEvent extends Event
 		this.activating = activating;
 	}
 
-	public override function clone():Event
+	public override function clone():ActivityEvent
 	{
 		var event = new ActivityEvent(type, bubbles, cancelable, activating);
 		event.target = target;
@@ -73,6 +78,12 @@ class ActivityEvent extends Event
 	public override function toString():String
 	{
 		return __formatToString("ActivityEvent", ["type", "bubbles", "cancelable", "activating"]);
+	}
+
+	@:noCompletion private override function __init():Void
+	{
+		super.__init();
+		activating = false;
 	}
 }
 #else

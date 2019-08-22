@@ -5,6 +5,7 @@ import openfl._internal.backend.gl.GLBuffer;
 import openfl._internal.backend.gl.GLFramebuffer;
 import openfl._internal.backend.gl.GLTexture;
 import openfl._internal.renderer.context3D.Context3DState;
+import openfl._internal.renderer.BitmapDataPool;
 import openfl._internal.renderer.SamplerState;
 import openfl._internal.utils.Float32Array;
 import openfl._internal.utils.UInt16Array;
@@ -261,6 +262,7 @@ import lime.math.Vector2;
 	@:noCompletion private var __backBufferTexture:RectangleTexture;
 	@:noCompletion private var __backBufferWantsBestResolution:Bool;
 	@:noCompletion private var __backBufferWantsBestResolutionOnBrowserZoom:Bool;
+	@:noCompletion private var __bitmapDataPool:BitmapDataPool;
 	@:noCompletion private var __cleared:Bool;
 	@:noCompletion private var __context:#if lime RenderContext #else Dynamic #end;
 	@:noCompletion private var __contextState:Context3DState;
@@ -317,10 +319,10 @@ import lime.math.Vector2;
 			var extension:Dynamic = gl.getExtension("EXT_texture_filter_anisotropic");
 
 			#if (js && html5)
-			if (extension == null || !Reflect.hasField(extension, "MAX_TEXTURE_MAX_ANISOTROPY_EXT")) extension = gl
-				.getExtension("MOZ_EXT_texture_filter_anisotropic");
-			if (extension == null || !Reflect.hasField(extension, "MAX_TEXTURE_MAX_ANISOTROPY_EXT")) extension = gl
-				.getExtension("WEBKIT_EXT_texture_filter_anisotropic");
+			if (extension == null
+				|| extension.MAX_TEXTURE_MAX_ANISOTROPY_EXT == null) extension = gl.getExtension("MOZ_EXT_texture_filter_anisotropic");
+			if (extension == null
+				|| extension.MAX_TEXTURE_MAX_ANISOTROPY_EXT == null) extension = gl.getExtension("WEBKIT_EXT_texture_filter_anisotropic");
 			#end
 
 			if (extension != null)
@@ -406,6 +408,8 @@ import lime.math.Vector2;
 		__quadIndexBuffer = createIndexBuffer(__quadIndexBufferCount);
 		__quadIndexBuffer.uploadFromTypedArray(data);
 		#end
+
+		__bitmapDataPool = new BitmapDataPool(30, this);
 	}
 
 	/**
@@ -458,8 +462,10 @@ import lime.math.Vector2;
 
 			clearMask |= gl.COLOR_BUFFER_BIT;
 
-			if (#if openfl_disable_context_cache true #else __contextState.colorMaskRed != true || __contextState.colorMaskGreen != true || __contextState
-				.colorMaskBlue != true || __contextState.colorMaskAlpha != true #end)
+			if (#if openfl_disable_context_cache true #else __contextState.colorMaskRed != true
+				|| __contextState.colorMaskGreen != true
+				|| __contextState.colorMaskBlue != true
+				|| __contextState.colorMaskAlpha != true #end)
 			{
 				gl.colorMask(true, true, true, true);
 				__contextState.colorMaskRed = true;
@@ -574,6 +580,9 @@ import lime.math.Vector2;
 		{
 			if (__backBufferTexture == null || backBufferWidth != width || backBufferHeight != height)
 			{
+				if (__backBufferTexture != null) __backBufferTexture.dispose();
+				if (__frontBufferTexture != null) __frontBufferTexture.dispose();
+
 				__backBufferTexture = createRectangleTexture(width, height, BGRA, true);
 				__frontBufferTexture = createRectangleTexture(width, height, BGRA, true);
 
@@ -2013,7 +2022,8 @@ import lime.math.Vector2;
 		{
 			__setGLBlend(true);
 
-			if (__state.blendDestinationRGBFactor == __state.blendDestinationAlphaFactor && __state.blendSourceRGBFactor == __state.blendSourceAlphaFactor)
+			if (__state.blendDestinationRGBFactor == __state.blendDestinationAlphaFactor
+				&& __state.blendSourceRGBFactor == __state.blendSourceAlphaFactor)
 			{
 				gl.blendFunc(__getGLBlend(__state.blendSourceRGBFactor), __getGLBlend(__state.blendDestinationRGBFactor));
 			}
@@ -2077,8 +2087,8 @@ import lime.math.Vector2;
 
 	@:noCompletion private function __flushGLDepth():Void
 	{
-		var depthMask = (__state.depthMask && (__state.renderToTexture != null ? __state.renderToTextureDepthStencil : __state
-			.backBufferEnableDepthAndStencil));
+		var depthMask = (__state.depthMask
+			&& (__state.renderToTexture != null ? __state.renderToTextureDepthStencil : __state.backBufferEnableDepthAndStencil));
 
 		if (#if openfl_disable_context_cache true #else __contextState.depthMask != depthMask #end)
 		{
@@ -2118,11 +2128,11 @@ import lime.math.Vector2;
 	{
 		if (__state.renderToTexture != null)
 		{
-			if (#if openfl_disable_context_cache true #else __contextState.renderToTexture != __state.renderToTexture || __contextState
-				.renderToTextureSurfaceSelector != __state.renderToTextureSurfaceSelector #end)
+			if (#if openfl_disable_context_cache true #else __contextState.renderToTexture != __state.renderToTexture
+				|| __contextState.renderToTextureSurfaceSelector != __state.renderToTextureSurfaceSelector #end)
 			{
-				var framebuffer = __state.renderToTexture.__getGLFramebuffer(__state.renderToTextureDepthStencil, __state.renderToTextureAntiAlias, __state
-					.renderToTextureSurfaceSelector);
+				var framebuffer = __state.renderToTexture.__getGLFramebuffer(__state.renderToTextureDepthStencil, __state.renderToTextureAntiAlias,
+					__state.renderToTextureSurfaceSelector);
 				__bindGLFramebuffer(framebuffer);
 
 				__contextState.renderToTexture = __state.renderToTexture;
@@ -2144,8 +2154,8 @@ import lime.math.Vector2;
 			}
 
 			if (#if openfl_disable_context_cache true #else __contextState.renderToTexture != null
-					|| __contextState.__currentGLFramebuffer != __state.__primaryGLFramebuffer
-					|| __contextState.backBufferEnableDepthAndStencil != __state.backBufferEnableDepthAndStencil #end
+				|| __contextState.__currentGLFramebuffer != __state.__primaryGLFramebuffer
+				|| __contextState.backBufferEnableDepthAndStencil != __state.backBufferEnableDepthAndStencil #end
 			)
 			{
 				__bindGLFramebuffer(__state.__primaryGLFramebuffer);
@@ -2484,7 +2494,10 @@ import lime.math.Vector2;
 
 		if (context != null
 			&& context != this
-			&& context.__frontBufferTexture != null && stage3D.visible && backBufferHeight > 0 && backBufferWidth > 0)
+			&& context.__frontBufferTexture != null
+			&& stage3D.visible
+			&& backBufferHeight > 0
+			&& backBufferWidth > 0)
 		{
 			// if (!__stage.__renderer.__cleared) __stage.__renderer.__clear ();
 

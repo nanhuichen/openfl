@@ -24,8 +24,7 @@ import openfl.Vector;
 	@:require(flash15) public var maxBackBufferHeight:Int;
 	@:require(flash15) public var maxBackBufferWidth:Int;
 	@:require(flash12) public var profile(default, never):String;
-	public function clear(red:Float = 0, green:Float = 0, blue:Float = 0, alpha:Float = 1, depth:Float = 1, stencil:UInt = 0,
-		mask:UInt = 0xFFFFFFFF):Void;
+	public function clear(red:Float = 0, green:Float = 0, blue:Float = 0, alpha:Float = 1, depth:Float = 1, stencil:UInt = 0, mask:UInt = 0xFFFFFFFF):Void;
 	public function configureBackBuffer(width:Int, height:Int, antiAlias:Int, enableDepthAndStencil:Bool = true, wantsBestResolution:Bool = false,
 		wantsBestResolutionOnBrowserZoom:Bool = false):Void;
 	public function createCubeTexture(size:Int, format:Context3DTextureFormat, optimizeForRenderToTexture:Bool, streamingLevels:Int = 0):CubeTexture;
@@ -60,8 +59,7 @@ import openfl.Vector;
 	#end
 	public function setProgramConstantsFromByteArray(programType:Context3DProgramType, firstRegister:Int, numRegisters:Int, data:ByteArray,
 		byteArrayOffset:UInt):Void;
-	public function setProgramConstantsFromMatrix(programType:Context3DProgramType, firstRegister:Int, matrix:Matrix3D,
-		transposedMatrix:Bool = false):Void;
+	public function setProgramConstantsFromMatrix(programType:Context3DProgramType, firstRegister:Int, matrix:Matrix3D, transposedMatrix:Bool = false):Void;
 	public function setProgramConstantsFromVector(programType:Context3DProgramType, firstRegister:Int, data:Vector<Float>, numRegisters:Int = -1):Void;
 	public function setRenderToBackBuffer():Void;
 	public function setRenderToTexture(texture:TextureBase, enableDepthAndStencil:Bool = false, antiAlias:Int = 0, surfaceSelector:Int = 0,

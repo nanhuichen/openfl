@@ -67,11 +67,16 @@ import lime.media.AudioSource;
 	#if openfljs
 	@:noCompletion private static function __init__()
 	{
-		untyped Object.defineProperties(SoundChannel.prototype,
-			{
-				"position": {get: untyped __js__("function () { return this.get_position (); }"), set: untyped __js__("function (v) { return this.set_position (v); }")},
-				"soundTransform": {get: untyped __js__("function () { return this.get_soundTransform (); }"), set: untyped __js__("function (v) { return this.set_soundTransform (v); }")},
-			});
+		untyped Object.defineProperties(SoundChannel.prototype, {
+			"position": {
+				get: untyped __js__("function () { return this.get_position (); }"),
+				set: untyped __js__("function (v) { return this.set_position (v); }")
+			},
+			"soundTransform": {
+				get: untyped __js__("function () { return this.get_soundTransform (); }"),
+				set: untyped __js__("function (v) { return this.set_soundTransform (v); }")
+			},
+		});
 	}
 	#end
 
@@ -127,6 +132,7 @@ import lime.media.AudioSource;
 		#if lime
 		__source.onComplete.remove(source_onComplete);
 		__source.dispose();
+		__source = null;
 		#end
 		__isValid = false;
 	}

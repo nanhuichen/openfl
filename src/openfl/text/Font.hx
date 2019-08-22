@@ -47,11 +47,10 @@ class Font #if lime extends LimeFont #end
 	#if openfljs
 	@:noCompletion private static function __init__()
 	{
-		untyped Object.defineProperty(Font.prototype, "fontName",
-			{
-				get: untyped __js__("function () { return this.get_fontName (); }"),
-				set: untyped __js__("function (v) { return this.set_fontName (v); }")
-			});
+		untyped Object.defineProperty(Font.prototype, "fontName", {
+			get: untyped __js__("function () { return this.get_fontName (); }"),
+			set: untyped __js__("function (v) { return this.set_fontName (v); }")
+		});
 	}
 	#end
 
@@ -80,6 +79,14 @@ class Font #if lime extends LimeFont #end
 		return __registeredFonts;
 	}
 
+	/**
+		Creates a new Font from bytes (a haxe.io.Bytes or openfl.utils.ByteArray)
+		synchronously. This means that the Font will be returned immediately (if
+		supported).
+
+		@param	bytes	A haxe.io.Bytes or openfl.utils.ByteArray instance
+		@returns	A new Font if successful, or `null` if unsuccessful
+	**/
 	public static function fromBytes(bytes:ByteArray):Font
 	{
 		var font = new Font();
@@ -94,6 +101,13 @@ class Font #if lime extends LimeFont #end
 		#end
 	}
 
+	/**
+		Creates a new Font from a file path synchronously. This means that the
+		Font will be returned immediately (if supported).
+
+		@param	path	A local file path containing a font
+		@returns	A new Font if successful, or `null` if unsuccessful
+	**/
 	public static function fromFile(path:String):Font
 	{
 		var font = new Font();
@@ -108,6 +122,7 @@ class Font #if lime extends LimeFont #end
 		#end
 	}
 
+	#if false
 	/**
 		Specifies whether a provided string can be displayed using the
 		currently assigned font.
@@ -117,6 +132,17 @@ class Font #if lime extends LimeFont #end
 				displayed using this font.
 	**/
 	// @:noCompletion @:dox(hide) public function hasGlyphs (str:String):Bool;
+	#end
+
+	/**
+		Creates a new Font from haxe.io.Bytes or openfl.utils.ByteArray data
+		asynchronously. The font decoding will occur in the background.
+		Progress, completion and error callbacks will be dispatched in the current
+		thread using callbacks attached to a returned Future object.
+
+		@param	bytes	A haxe.io.Bytes or openfl.utils.ByteArray instance
+		@returns	A Future Font
+	**/
 	public static function loadFromBytes(bytes:ByteArray):Future<Font>
 	{
 		#if lime
@@ -132,6 +158,15 @@ class Font #if lime extends LimeFont #end
 		#end
 	}
 
+	/**
+		Creates a new Font from a file path or web address asynchronously. The file
+		load and font decoding will occur in the background.
+		Progress, completion and error callbacks will be dispatched in the current
+		thread using callbacks attached to a returned Future object.
+
+		@param	path	A local file path or web address containing a font
+		@returns	A Future Font
+	**/
 	public static function loadFromFile(path:String):Future<Font>
 	{
 		#if lime
@@ -147,6 +182,17 @@ class Font #if lime extends LimeFont #end
 		#end
 	}
 
+	/**
+		Creates a new Font from a font name asynchronously. This feature should work
+		for embedded CSS fonts on the HTML5 target, but is not implemented for
+		registered OS fonts on native targets currently. The file
+		load and font decoding will occur in the background.
+		Progress, completion and error callbacks will be dispatched in the current
+		thread using callbacks attached to a returned Future object.
+
+		@param	path	A font name
+		@returns	A Future Font
+	**/
 	public static function loadFromName(path:String):Future<Font>
 	{
 		#if lime

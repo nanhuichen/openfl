@@ -494,8 +494,8 @@ class SWFShape
 								case 0x40, 0x41, 0x42, 0x43:
 									// Bitmap fill
 									var m:SWFMatrix = fillStyle.bitmapMatrix;
-									matrix = new Matrix(m.scaleX / 20, m.rotateSkew0 / 20, m.rotateSkew1 / 20, m.scaleY / 20, m.translateX / 20, m
-										.translateY / 20);
+									matrix = new Matrix(m.scaleX / 20, m.rotateSkew0 / 20, m.rotateSkew1 / 20, m.scaleY / 20, m.translateX / 20,
+										m.translateY / 20);
 									handler.beginBitmapFill(fillStyle.bitmapId, matrix, (fillStyle.type == 0x40 || fillStyle.type == 0x42),
 										(fillStyle.type == 0x40 || fillStyle.type == 0x41));
 							}
@@ -720,10 +720,22 @@ class SWFShape
 	private function removeEdgeFromCoordMap(edge:IEdge):Void
 	{
 		var key:String = edge.from.x + "_" + edge.from.y;
-		var coordMapArray = coordMap.get(key);
+		var coordMapArray:Array<IEdge> = coordMap.get(key);
+
 		if (coordMapArray != null)
 		{
-			coordMap.remove(key);
+			if (coordMapArray.length == 1)
+			{
+				coordMap.remove(key);
+			}
+			else
+			{
+				var i:Int = coordMapArray.indexOf(edge);
+				if (i > -1)
+				{
+					coordMapArray.remove(edge);
+				}
+			}
 		}
 	}
 

@@ -1,6 +1,8 @@
 package openfl.events;
 
 #if !flash
+import openfl._internal.utils.ObjectPool;
+
 /**
 	A NetConnection, NetStream, or SharedObject object dispatches
 	NetStatusEvent objects when a it reports its status. There is only one
@@ -26,7 +28,7 @@ class NetStatusEvent extends Event
 		| `info` | An object with properties that describe the object's status or error condition. |
 		| `target` | The NetConnection or NetStream object reporting its status. |
 	**/
-	public static inline var NET_STATUS:String = "netStatus";
+	public static inline var NET_STATUS:EventType<NetStatusEvent> = "netStatus";
 
 	/**
 		An object with properties that describe the object's status or error
@@ -122,6 +124,9 @@ class NetStatusEvent extends Event
 	**/
 	public var info:Dynamic;
 
+	@:noCompletion private static var __pool:ObjectPool<NetStatusEvent> = new ObjectPool<NetStatusEvent>(function() return new NetStatusEvent(null),
+	function(event) event.__init());
+
 	/**
 		Creates an Event object that contains information about `netStatus`
 		events. Event objects are passed as parameters to event listeners.
@@ -148,7 +153,7 @@ class NetStatusEvent extends Event
 		super(type, bubbles, cancelable);
 	}
 
-	public override function clone():Event
+	public override function clone():NetStatusEvent
 	{
 		var event = new NetStatusEvent(type, bubbles, cancelable, info);
 		event.target = target;
@@ -160,6 +165,12 @@ class NetStatusEvent extends Event
 	public override function toString():String
 	{
 		return __formatToString("NetStatusEvent", ["type", "bubbles", "cancelable", "info"]);
+	}
+
+	@:noCompletion private override function __init():Void
+	{
+		super.__init();
+		info = null;
 	}
 }
 #else

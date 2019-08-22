@@ -16,6 +16,11 @@ import lime.utils.Bytes;
 import sys.io.File;
 import sys.FileSystem;
 #end
+#if (js && html5)
+import js.html.FileReader;
+import js.html.InputElement;
+import js.Browser;
+#end
 
 /**
 	The FileReference class provides a means to upload and download files
@@ -454,6 +459,9 @@ class FileReference extends EventDispatcher
 	@:noCompletion private var __data:ByteArray;
 	@:noCompletion private var __path:String;
 	@:noCompletion private var __urlLoader:URLLoader;
+	#if (js && html5)
+	@:noCompletion private var __inputControl:InputElement;
+	#end
 
 	/**
 		Creates a new FileReference object. When populated, a FileReference
@@ -462,6 +470,15 @@ class FileReference extends EventDispatcher
 	public function new()
 	{
 		super();
+		#if (js && html5)
+		__inputControl = cast Browser.document.createElement("input");
+		__inputControl.setAttribute("type", "file");
+		__inputControl.onclick = function(e)
+		{
+			e.cancelBubble = true;
+			e.stopPropagation();
+		}
+		#end
 	}
 
 	/**
@@ -554,6 +571,34 @@ class FileReference extends EventDispatcher
 		openFileDialog.onCancel.add(openFileDialog_onCancel);
 		openFileDialog.onSelect.add(openFileDialog_onSelect);
 		openFileDialog.browse(OPEN, filter);
+		return true;
+		#elseif (js && html5)
+		var filter = null;
+		if (typeFilter != null)
+		{
+			var filters = [];
+			for (type in typeFilter)
+			{
+				filters.push(StringTools.replace(StringTools.replace(type.extension, "*.", "."), ";", ","));
+			}
+			filter = filters.join(",");
+		}
+		if (filter != null)
+		{
+			__inputControl.setAttribute("accept", filter);
+		}
+		__inputControl.onchange = function()
+		{
+			var file = __inputControl.files[0];
+			modificationDate = Date.fromTime(file.lastModified);
+			creationDate = modificationDate;
+			size = file.size;
+			type = "." + Path.extension(file.name);
+			name = Path.withoutDirectory(file.name);
+			__path = file.name;
+			dispatchEvent(new Event(Event.SELECT));
+		}
+		__inputControl.click();
 		return true;
 		#end
 
@@ -863,6 +908,15 @@ class FileReference extends EventDispatcher
 			data = Bytes.fromFile(__path);
 			openFileDialog_onComplete();
 		}
+		#elseif (js && html5)
+		var file = __inputControl.files[0];
+		var reader = new FileReader();
+		reader.onload = function(evt)
+		{
+			data = ByteArray.fromArrayBuffer(cast evt.target.result);
+			openFileDialog_onComplete();
+		}
+		reader.readAsArrayBuffer(file);
 		#end
 	}
 
@@ -1007,6 +1061,7 @@ class FileReference extends EventDispatcher
 		#end
 	}
 
+	#if !openfl_strict
 	/**
 		Starts the upload of the file to a remote server. Although Flash
 		Player has no restriction on the size of files you can upload or
@@ -1230,6 +1285,7 @@ class FileReference extends EventDispatcher
 	{
 		openfl._internal.Lib.notImplemented();
 	}
+	#end
 
 	// Event Handlers
 	@:noCompletion private function openFileDialog_onCancel():Void

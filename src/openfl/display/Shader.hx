@@ -140,8 +140,26 @@ class Shader
 		properties of the `data` object, see the ShaderData class description.
 	**/
 	public var data(get, set):ShaderData;
+
+	/**
+		Get or set the fragment source used when compiling with GLSL.
+
+		This property is not available on the Flash target.
+	**/
 	public var glFragmentSource(get, set):String;
+
+	/**
+		The compiled GLProgram if available.
+
+		This property is not available on the Flash target.
+	**/
 	@SuppressWarnings("checkstyle:Dynamic") public var glProgram(default, null):GLProgram;
+
+	/**
+		Get or set the vertex source used when compiling with GLSL.
+
+		This property is not available on the Flash target.
+	**/
 	public var glVertexSource(get, set):String;
 
 	/**
@@ -184,9 +202,17 @@ class Shader
 		* `sqrt(x)`
 	**/
 	public var precisionHint:ShaderPrecision;
+
+	/**
+		The compiled Program3D if available.
+
+		This property is not available on the Flash target.
+	**/
 	public var program:Program3D;
 
 	@:noCompletion private var __alpha:ShaderParameter<Float>;
+	@:noCompletion private var __alphaTexture:ShaderInput<BitmapData>;
+	@:noCompletion private var __alphaTextureMatrix:ShaderParameter<Float>;
 	@:noCompletion private var __bitmap:ShaderInput<BitmapData>;
 	@:noCompletion private var __colorMultiplier:ShaderParameter<Float>;
 	@:noCompletion private var __colorOffset:ShaderParameter<Float>;
@@ -211,12 +237,17 @@ class Shader
 	#if openfljs
 	@:noCompletion private static function __init__()
 	{
-		untyped Object.defineProperties(Shader.prototype,
-			{
-				"data": {get: untyped __js__("function () { return this.get_data (); }"), set: untyped __js__("function (v) { return this.set_data (v); }")},
-				"glFragmentSource": {get: untyped __js__("function () { return this.get_glFragmentSource (); }"), set: untyped __js__("function (v) { return this.set_glFragmentSource (v); }")},
-				"glVertexSource": {get: untyped __js__("function () { return this.get_glVertexSource (); }"), set: untyped __js__("function (v) { return this.set_glVertexSource (v); }")},
-			});
+		untyped Object.defineProperties(Shader.prototype, {
+			"data": {get: untyped __js__("function () { return this.get_data (); }"), set: untyped __js__("function (v) { return this.set_data (v); }")},
+			"glFragmentSource": {
+				get: untyped __js__("function () { return this.get_glFragmentSource (); }"),
+				set: untyped __js__("function (v) { return this.set_glFragmentSource (v); }")
+			},
+			"glVertexSource": {
+				get: untyped __js__("function () { return this.get_glVertexSource (); }"),
+				set: untyped __js__("function (v) { return this.set_glVertexSource (v); }")
+			},
+		});
 	}
 	#end
 
@@ -445,12 +476,13 @@ class Shader
 			var gl = __context.gl;
 
 			var prefix = "#ifdef GL_ES
-				" + (precisionHint == FULL ? "#ifdef GL_FRAGMENT_PRECISION_HIGH
+				"
+				+ (precisionHint == FULL ? "#ifdef GL_FRAGMENT_PRECISION_HIGH
 				precision highp float;
 				#else
 				precision mediump float;
-				#endif" : "precision lowp float;") +
-				"
+				#endif" : "precision lowp float;")
+				+ "
 				#endif
 				";
 
@@ -563,6 +595,8 @@ class Shader
 
 				switch (name)
 				{
+					case "openfl_AlphaTexture":
+						__alphaTexture = input;
 					case "openfl_Texture":
 						__texture = input;
 					case "bitmap":
@@ -669,6 +703,7 @@ class Shader
 							switch (name)
 							{
 								case "openfl_Alpha": __alpha = parameter;
+								case "openfl_AlphaTextureMatrix": __alphaTextureMatrix = parameter;
 								case "openfl_ColorMultiplier": __colorMultiplier = parameter;
 								case "openfl_ColorOffset": __colorOffset = parameter;
 								case "openfl_Matrix": __matrix = parameter;
@@ -781,7 +816,9 @@ class Shader
 		var paramData = shaderBuffer.paramData;
 
 		var boolRef, floatRef, intRef, hasOverride;
-		var overrideBoolValue:Array<Bool> = null, overrideFloatValue:Array<Float> = null, overrideIntValue:Array<Int> = null;
+		var overrideBoolValue:Array<Bool> = null,
+			overrideFloatValue:Array<Float> = null,
+			overrideIntValue:Array<Int> = null;
 
 		for (i in 0...shaderBuffer.paramCount)
 		{

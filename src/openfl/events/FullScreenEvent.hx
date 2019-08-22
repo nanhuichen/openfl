@@ -1,6 +1,8 @@
 package openfl.events;
 
 #if !flash
+import openfl._internal.utils.ObjectPool;
+
 /**
 	The Stage object dispatches a FullScreenEvent object whenever the Stage
 	enters or leaves full-screen display mode. There is only one type of
@@ -26,7 +28,7 @@ class FullScreenEvent extends ActivityEvent
 		| `currentTarget` | The object that is actively processing the Event object with an event listener. |
 		| `target` | The Stage object. |
 	**/
-	public static inline var FULL_SCREEN:String = "fullScreen";
+	public static inline var FULL_SCREEN:EventType<FullScreenEvent> = "fullScreen";
 
 	/**
 		The `FULL_SCREEN_INTERACTIVE_ACCEPTED:String` constant defines the value of the
@@ -42,7 +44,7 @@ class FullScreenEvent extends ActivityEvent
 		| `currentTarget` | The object that is actively processing the Event object with an event listener. |
 		| `target` | The Stage object. |
 	**/
-	public static inline var FULL_SCREEN_INTERACTIVE_ACCEPTED:String = "fullScreenInteractiveAccepted";
+	public static inline var FULL_SCREEN_INTERACTIVE_ACCEPTED:EventType<FullScreenEvent> = "fullScreenInteractiveAccepted";
 
 	/**
 		Indicates whether the Stage object is in full-screen mode (`true`) or
@@ -55,6 +57,9 @@ class FullScreenEvent extends ActivityEvent
 		not (`false`).
 	**/
 	public var interactive:Bool;
+
+	@:noCompletion private static var __pool:ObjectPool<FullScreenEvent> = new ObjectPool<FullScreenEvent>(function() return new FullScreenEvent(null),
+	function(event) event.__init());
 
 	/**
 		Creates an event object that contains information about `fullScreen`
@@ -86,7 +91,7 @@ class FullScreenEvent extends ActivityEvent
 		this.interactive = interactive;
 	}
 
-	public override function clone():Event
+	public override function clone():FullScreenEvent
 	{
 		var event = new FullScreenEvent(type, bubbles, cancelable, fullScreen, interactive);
 		event.target = target;
@@ -98,6 +103,13 @@ class FullScreenEvent extends ActivityEvent
 	public override function toString():String
 	{
 		return __formatToString("FullscreenEvent", ["type", "bubbles", "cancelable", "fullscreen", "interactive"]);
+	}
+
+	@:noCompletion private override function __init():Void
+	{
+		super.__init();
+		fullScreen = false;
+		interactive = false;
 	}
 }
 #else

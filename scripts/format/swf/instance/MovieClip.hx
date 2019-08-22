@@ -422,8 +422,10 @@ class MovieClip extends flash.display.MovieClip
 				// Check if it's in the active objects
 				if (activeIdx > -1)
 				{
-					while (activeIdx > -1 && (activeObjects[activeIdx].frameObject.characterId != object.characterId || (activeObjects[activeIdx].frameObject
-						.characterId == object.characterId && activeObjects[activeIdx].frameObject.depth != object.depth)))
+					while (activeIdx > -1
+						&& (activeObjects[activeIdx].frameObject.characterId != object.characterId
+							|| (activeObjects[activeIdx].frameObject.characterId == object.characterId
+								&& activeObjects[activeIdx].frameObject.depth != object.depth)))
 					{
 						activeIdx--;
 					}
@@ -608,7 +610,6 @@ class MovieClip extends flash.display.MovieClip
 	{
 		graphics.clear();
 
-		var matrix = new Matrix();
 		var cols = [0, scale9Rect.left, scale9Rect.right, bitmap.width];
 		var rows = [0, scale9Rect.top, scale9Rect.bottom, bitmap.height];
 		var outerWidth = bitmap.width - (cols[2] - cols[1]);
@@ -631,23 +632,23 @@ class MovieClip extends flash.display.MovieClip
 				h = rows[row + 1] - rows[row];
 
 				// this makes sure the bitmap is drawn in the right spot to be drawn
+				var matrix = new Matrix();
 				matrix.identity();
-				matrix.translate(dx - sourceX, dy - sourceY);
-
-				// scale the middle section
+				var applied_scaleY = 1;
+				var applied_scaleX = 1;
 				if (row == 1)
 				{
-					h *= innerScaleY;
-					matrix.scale(1, innerScaleY);
-					matrix.translate(0, dy - sourceY * innerScaleY);
+					applied_scaleY = innerScaleY;
 				}
-
 				if (col == 1)
 				{
-					w *= innerScaleX;
-					matrix.scale(innerScaleX, 1);
-					matrix.translate(dx - sourceX * innerScaleX, 0);
+					applied_scaleX = innerScaleX;
 				}
+
+				h *= applied_scaleY;
+				w *= applied_scaleX;
+				matrix.translate((dx - sourceX) * applied_scaleX, (dy - sourceY) * applied_scaleY);
+				matrix.scale(applied_scaleX, applied_scaleY);
 
 				// now draw it
 				graphics.beginBitmapFill(bitmap, matrix, false, true);

@@ -1,7 +1,7 @@
 package openfl._internal.renderer.dom;
 
+import openfl._internal.renderer.dom.DOMRenderer;
 import openfl.display.Bitmap;
-import openfl.display.DOMRenderer;
 #if lime
 // TODO: Avoid use of private APIs
 import lime._internal.graphics.ImageCanvasUtil;
@@ -38,10 +38,8 @@ class DOMBitmap
 	public static inline function render(bitmap:Bitmap, renderer:DOMRenderer):Void
 	{
 		#if (js && html5)
-		if (bitmap.stage != null
-				&& bitmap.__worldVisible
-				&& bitmap.__renderable
-				&& bitmap.__bitmapData != null && bitmap.__bitmapData.__isValid && bitmap.__bitmapData.readable)
+		if (bitmap.stage != null && bitmap.__worldVisible && bitmap.__renderable && bitmap.__bitmapData != null && bitmap.__bitmapData.__isValid
+			&& bitmap.__bitmapData.readable)
 		{
 			renderer.__pushMaskObject(bitmap);
 

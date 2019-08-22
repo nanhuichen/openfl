@@ -47,23 +47,23 @@ package openfl.media;
 		settings are applied.
 	**/
 	public static var soundTransform(get, set):SoundTransform;
+
 	@:noCompletion private static var __soundChannels:Array<SoundChannel> = new Array();
 	@:noCompletion private static var __soundTransform:SoundTransform = #if (mute || mute_sound) new SoundTransform(0) #else new SoundTransform() #end;
 
 	#if openfljs
 	@:noCompletion private static function __init__()
 	{
-		untyped Object.defineProperty(SoundMixer, "soundTransform",
+		untyped Object.defineProperty(SoundMixer, "soundTransform", {
+			get: function()
 			{
-				get: function()
-				{
-					return SoundMixer.get_soundTransform();
-				},
-				set: function(value)
-				{
-					return SoundMixer.set_soundTransform(value);
-				}
-			});
+				return SoundMixer.get_soundTransform();
+			},
+			set: function(value)
+			{
+				return SoundMixer.set_soundTransform(value);
+			}
+		});
 	}
 	#end
 
@@ -87,6 +87,7 @@ package openfl.media;
 		return false;
 	}
 
+	#if false
 	/**
 		Takes a snapshot of the current sound wave and places it into the
 		specified ByteArray object. The values are formatted as normalized
@@ -133,6 +134,7 @@ package openfl.media;
 							 11.025 KHz; and so on.
 	**/
 	// @:noCompletion @:dox(hide) public static function computeSpectrum (outputArray:ByteArray, FFTMode:Bool = false, stretchFactor:Int = 0):Void;
+	#end
 
 	/**
 		Stops all sounds currently playing.

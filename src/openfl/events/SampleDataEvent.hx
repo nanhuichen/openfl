@@ -1,6 +1,7 @@
 package openfl.events;
 
 #if !flash
+import openfl._internal.utils.ObjectPool;
 import openfl.utils.ByteArray;
 import openfl.utils.Endian;
 
@@ -91,7 +92,7 @@ class SampleDataEvent extends Event
 		| `cancelable` | `false`; there is no default behavior to cancel. |
 		| `position` | The point from which audio data is provided. |
 	**/
-	public static inline var SAMPLE_DATA:String = "sampleData";
+	public static inline var SAMPLE_DATA:EventType<SampleDataEvent> = "sampleData";
 
 	/**
 		The data in the audio stream.
@@ -102,6 +103,9 @@ class SampleDataEvent extends Event
 		The position of the data in the audio stream.
 	**/
 	public var position:Float;
+
+	@:noCompletion private static var __pool:ObjectPool<SampleDataEvent> = new ObjectPool<SampleDataEvent>(function() return new SampleDataEvent(null),
+	function(event) event.__init());
 
 	/**
 		Creates an event object that contains information about audio data
@@ -125,7 +129,7 @@ class SampleDataEvent extends Event
 		position = 0.0;
 	}
 
-	public override function clone():Event
+	public override function clone():SampleDataEvent
 	{
 		var event = new SampleDataEvent(type, bubbles, cancelable);
 		event.target = target;
@@ -137,6 +141,14 @@ class SampleDataEvent extends Event
 	public override function toString():String
 	{
 		return __formatToString("SampleDataEvent", ["type", "bubbles", "cancelable"]);
+	}
+
+	@:noCompletion private override function __init():Void
+	{
+		super.__init();
+		data = new ByteArray();
+		data.endian = Endian.LITTLE_ENDIAN;
+		position = 0.0;
 	}
 }
 #else

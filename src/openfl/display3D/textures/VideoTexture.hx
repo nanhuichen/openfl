@@ -63,6 +63,7 @@ import openfl.net.NetStream;
 		__textureTarget = __context.gl.TEXTURE_2D;
 	}
 
+	#if false
 	/**
 		Specifies a video stream from a camera to be rendered within the texture of the
 		VideoTexture object.
@@ -73,7 +74,8 @@ import openfl.net.NetStream;
 
 		@param	theCamera
 	**/
-	// public function attachCamera (theCamera:Camera):Void {}
+	// public function attachCamera(theCamera:Camera):Void {}
+	#end
 
 	/**
 		Specifies a video stream to be rendered within the texture of the VideoTexture
@@ -87,6 +89,13 @@ import openfl.net.NetStream;
 	**/
 	public function attachNetStream(netStream:NetStream):Void
 	{
+		#if (js && html5)
+		if (__netStream != null)
+		{
+			__netStream.__video.removeEventListener("canplay", __onCanPlay, false);
+		}
+		#end
+
 		__netStream = netStream;
 
 		#if (js && html5)
@@ -99,13 +108,17 @@ import openfl.net.NetStream;
 		}
 		else
 		{
-			__netStream.__video.addEventListener("canplay", function(_)
-			{
-				__textureReady();
-			}, false);
+			__netStream.__video.addEventListener("canplay", __onCanPlay, false);
 		}
 		#end
 	}
+
+	#if (js && html5)
+	@:noCompletion private function __onCanPlay(_):Void
+	{
+		__textureReady();
+	}
+	#end
 
 	@:noCompletion private override function __getTexture():GLTexture
 	{

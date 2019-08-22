@@ -2,6 +2,7 @@ package openfl.events;
 
 #if !flash
 import haxe.io.Error;
+import openfl._internal.utils.ObjectPool;
 
 /**
 	An object dispatches an AsyncErrorEvent when an exception is thrown from
@@ -29,12 +30,15 @@ class AsyncErrorEvent extends ErrorEvent
 		| `target` | The object dispatching the event. |
 		| `error` | The error that triggered the event. |
 	**/
-	public static inline var ASYNC_ERROR:String = "asyncError";
+	public static inline var ASYNC_ERROR:EventType<AsyncErrorEvent> = "asyncError";
 
 	/**
 		The exception that was thrown.
 	**/
 	public var error:Error;
+
+	@:noCompletion private static var __pool:ObjectPool<AsyncErrorEvent> = new ObjectPool<AsyncErrorEvent>(function() return new AsyncErrorEvent(null),
+	function(event) event.__init());
 
 	/**
 		Creates an AsyncErrorEvent object that contains information about
@@ -66,7 +70,7 @@ class AsyncErrorEvent extends ErrorEvent
 		this.error = error;
 	}
 
-	public override function clone():Event
+	public override function clone():AsyncErrorEvent
 	{
 		var event = new AsyncErrorEvent(type, bubbles, cancelable, text, error);
 		event.target = target;
@@ -78,6 +82,13 @@ class AsyncErrorEvent extends ErrorEvent
 	public override function toString():String
 	{
 		return __formatToString("AsyncErrorEvent", ["type", "bubbles", "cancelable", "text", "error"]);
+	}
+
+	@:noCompletion private override function __init():Void
+	{
+		super.__init();
+		text = "";
+		error = null;
 	}
 }
 #else

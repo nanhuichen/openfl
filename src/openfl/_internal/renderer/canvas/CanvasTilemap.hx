@@ -2,7 +2,6 @@ package openfl._internal.renderer.canvas;
 
 import openfl.display.BitmapData;
 import openfl.display.BlendMode;
-import openfl.display.CanvasRenderer;
 import openfl.display.TileContainer;
 import openfl.display.Tilemap;
 import openfl.display.Tileset;
@@ -75,7 +74,15 @@ class CanvasTilemap
 		var tiles = group.__tiles;
 		var length = group.__length;
 
-		var tile, tileset, alpha, visible, blendMode = null, id, tileData, tileRect, bitmapData;
+		var tile,
+			tileset,
+			alpha,
+			visible,
+			blendMode = null,
+			id,
+			tileData,
+			tileRect,
+			bitmapData;
 
 		for (i in 0...length)
 		{

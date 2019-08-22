@@ -23,7 +23,7 @@ import openfl.display3D.Context3D;
 	`src` property, as this example shows:
 
 	```haxe
-	myShader.data.src.image = new BitmapData(50, 50, true, 0xFF990000);
+	myShader.data.src.input = new BitmapData(50, 50, true, 0xFF990000);
 	```
 
 	For some uses of a Shader instance, you do not need to specify an input
@@ -65,6 +65,12 @@ import openfl.display3D.Context3D;
 		instance.
 	**/
 	public var channels(default, null):Int;
+
+	/**
+		The texture filter to use when binding this shader input.
+
+		This property is not available when targeting Flash.
+	**/
 	public var filter:Context3DTextureFilter;
 
 	/**
@@ -100,8 +106,15 @@ import openfl.display3D.Context3D;
 		`channels`.
 	**/
 	public var input:T;
+
+	/**
+		The mip filter to use when binding this shader input.
+
+		This property is not available when targeting Flash.
+	**/
 	public var mipFilter:Context3DMipFilter;
-	@:noCompletion public var name:String;
+
+	@:noCompletion @:dox(hide) @SuppressWarnings("checkstyle:FieldDocComment") public var name:String;
 
 	/**
 		The width of the shader input. This property is only used when the
@@ -109,6 +122,12 @@ import openfl.display3D.Context3D;
 		is a BitmapData instance the width is automatically determined.
 	**/
 	public var width:Int;
+
+	/**
+		The wrap mode to use when binding this shader input.
+
+		This property is not available when targeting Flash.
+	**/
 	public var wrap:Context3DWrapMode;
 
 	@:noCompletion private var __isUniform:Bool;

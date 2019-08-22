@@ -1,6 +1,7 @@
 package openfl.filters;
 
 #if !flash
+import openfl.display.BitmapData;
 import openfl.display.BlendMode;
 import openfl.display.DisplayObjectRenderer;
 import openfl.display.Shader;
@@ -54,7 +55,8 @@ import openfl.display.Shader;
 #end
 class ShaderFilter extends BitmapFilter
 {
-	@:beta public var blendMode:BlendMode;
+	@:dox(hide) @:noCompletion @:beta @SuppressWarnings("checkstyle:FieldDocComment")
+	public var blendMode:BlendMode;
 
 	/**
 		The growth in pixels on the bottom side of the target object.
@@ -153,7 +155,7 @@ class ShaderFilter extends BitmapFilter
 		return filter;
 	}
 
-	@:noCompletion private override function __initShader(renderer:DisplayObjectRenderer, pass:Int):Shader
+	@:noCompletion private override function __initShader(renderer:DisplayObjectRenderer, pass:Int, sourceBitmapData:BitmapData):Shader
 	{
 		__shaderBlendMode = blendMode;
 		return shader;

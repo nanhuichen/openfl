@@ -15,6 +15,7 @@ package openfl.utils;
 		Defines the string to use for the deflate compression algorithm.
 	**/
 	public var DEFLATE = 0;
+
 	// GZIP;
 	public var LZMA = 1;
 
@@ -34,9 +35,9 @@ package openfl.utils;
 		}
 	}
 
-	@:to private static function toString(value:Int):String
+	@:to private function toString():String
 	{
-		return switch (value)
+		return switch (cast this : CompressionAlgorithm)
 		{
 			case CompressionAlgorithm.DEFLATE: "deflate";
 			case CompressionAlgorithm.LZMA: "lzma";

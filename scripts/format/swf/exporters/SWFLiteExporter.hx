@@ -40,6 +40,7 @@ import format.swf.tags.TagDefineEditText;
 import format.swf.tags.TagDefineFont;
 import format.swf.tags.TagDefineFont2;
 import format.swf.tags.TagDefineFont4;
+import format.swf.tags.TagDefineScalingGrid;
 import format.swf.tags.TagDefineShape;
 import format.swf.tags.TagDefineSprite;
 import format.swf.tags.TagDefineText;
@@ -69,7 +70,6 @@ class SWFLiteExporter
 	public var filterClasses:Map<String, Bool>;
 	public var swfLite:SWFLite;
 
-	private var alphaPalette:Bytes;
 	private var data:SWFRoot;
 
 	public function new(data:SWFRoot)
@@ -238,7 +238,7 @@ class SWFLiteExporter
 				}
 
 				var paddedWidth:Int = Math.ceil(data.bitmapWidth / 4) * 4;
-				var values = Bytes.alloc((data.bitmapWidth + 1) * data.bitmapHeight);
+				var values = Bytes.alloc(data.bitmapWidth * data.bitmapHeight + data.bitmapHeight);
 				index = 0;
 
 				for (y in 0...data.bitmapHeight)
@@ -250,18 +250,17 @@ class SWFLiteExporter
 				}
 
 				var png = new List();
-				png.add(CHeader(
-					{
-						width: data.bitmapWidth,
-						height: data.bitmapHeight,
-						colbits: 8,
-						color: ColIndexed,
-						interlaced: false
-					}));
+				png.add(CHeader({
+					width: data.bitmapWidth,
+					height: data.bitmapHeight,
+					colbits: 8,
+					color: ColIndexed,
+					interlaced: false
+				}));
 				png.add(CPalette(palette));
 				if (transparent) png.add(CUnknown("tRNS", alpha));
 				var valuesBA:ByteArray = values;
-				valuesBA.deflate();
+				valuesBA.compress();
 				png.add(CData(valuesBA));
 				png.add(CEnd);
 
@@ -295,19 +294,6 @@ class SWFLiteExporter
 				alpha.uncompress();
 				alpha.position = 0;
 
-				if (alphaPalette == null)
-				{
-					alphaPalette = Bytes.alloc(256 * 3);
-					var index = 0;
-
-					for (i in 0...256)
-					{
-						alphaPalette.set(index++, i);
-						alphaPalette.set(index++, i);
-						alphaPalette.set(index++, i);
-					}
-				}
-
 				#if !nodejs
 				var image = Image.fromBytes(data.bitmapData);
 				#else
@@ -316,7 +302,7 @@ class SWFLiteExporter
 				var image = jpeg.decode(bytes.getData());
 				#end
 
-				var values = Bytes.alloc((image.width + 1) * image.height);
+				var values = Bytes.alloc(image.width * image.height + image.height);
 				var index = 0;
 
 				for (y in 0...image.height)
@@ -328,17 +314,15 @@ class SWFLiteExporter
 				}
 
 				var png = new List();
-				png.add(CHeader(
-					{
-						width: image.width,
-						height: image.height,
-						colbits: 8,
-						color: ColIndexed,
-						interlaced: false
-					}));
-				png.add(CPalette(alphaPalette));
+				png.add(CHeader({
+					width: image.width,
+					height: image.height,
+					colbits: 8,
+					color: ColGrey(false),
+					interlaced: false
+				}));
 				var valuesBA:ByteArray = values;
-				valuesBA.deflate();
+				valuesBA.compress();
 				png.add(CData(valuesBA));
 				png.add(CEnd);
 
@@ -554,7 +538,6 @@ class SWFLiteExporter
 				frameObject = new FrameObject();
 				frameObject.symbol = object.characterId;
 				frameObject.id = object.placedAtIndex;
-
 				frameObject.name = placeTag.instanceName;
 
 				if (!lastModified.exists(object.placedAtIndex))
@@ -647,6 +630,12 @@ class SWFLiteExporter
 			}
 
 			symbol.frames.push(frame);
+		}
+
+		var scalingGrid = data.getScalingGrid(symbol.id);
+		if (scalingGrid != null && scalingGrid.splitter != null)
+		{
+			symbol.scale9Grid = scalingGrid.splitter.rect;
 		}
 
 		if (root)
@@ -1001,8 +990,9 @@ class SWFLiteExporter
 											stack.pop();
 											if (prop != null)
 											{
-												stack.push(AVM2.getFullName(data.abcData, prop, cls) + "." + AVM2.parseFunctionCall(data
-														.abcData, cls, nameIndex, argCount, stack));
+												stack.push(AVM2.getFullName(data.abcData, prop, cls)
+													+ "."
+													+ AVM2.parseFunctionCall(data.abcData, cls, nameIndex, argCount, stack));
 											}
 										case OConstructProperty(nameIndex, argCount):
 											Log.info("", "OConstructProperty stack: " + stack);
@@ -1064,7 +1054,7 @@ class SWFLiteExporter
 											switch (j)
 											{
 												case JNeq:
-													//												Log.info ("", stack[0]);
+													// Log.info("", stack[0]);
 													var temp = stack.pop();
 													js += "if (" + Std.string(stack.pop()) + " == " + Std.string(temp) + ")\n";
 												case JAlways:

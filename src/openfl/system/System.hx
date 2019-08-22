@@ -29,6 +29,7 @@ import cpp.vm.Gc;
 #end
 @:final class System
 {
+	#if false
 	/**
 		The amount of memory (in bytes) that is allocated to
 		Adobe<sup>஼/sup> Flash<sup>஼/sup> Player or Adobe<sup>஼/sup>
@@ -38,11 +39,17 @@ import cpp.vm.Gc;
 		collection.
 	**/
 	// @:noCompletion @:dox(hide) @:require(flash10_1) public static var freeMemory (default, null):Float;
+	#end
+
+	#if false
 	/**
 		The currently installed system IME. To register for imeComposition
 		events, call `addEventListener()` on this instance.
 	**/
 	// @:noCompletion @:dox(hide) public static var ime (default, null):openfl.system.IME;
+	#end
+
+	#if false
 	/**
 		The entire amount of memory (in bytes) used by an application. This is
 		the amount of resident private memory for the entire process.
@@ -53,6 +60,7 @@ import cpp.vm.Gc;
 		application, such as the web browser.
 	**/
 	// @:noCompletion @:dox(hide) @:require(flash10_1) public static var privateMemory (default, null):Float;
+	#end
 	// @:noCompletion @:dox(hide) @:require(flash11) public static var processCPUUsage (default, null):Float;
 
 	/**
@@ -71,6 +79,7 @@ import cpp.vm.Gc;
 		allows larger values.
 	**/
 	public static var totalMemory(get, never):Int;
+
 	// @:noCompletion @:dox(hide) @:require(flash10_1) public static var totalMemoryNumber (default, null):Float;
 
 	/**
@@ -128,23 +137,20 @@ import cpp.vm.Gc;
 	#if openfljs
 	@:noCompletion private static function __init__()
 	{
-		untyped Object.defineProperties(System,
-			{
-				"totalMemory":
-					{
-						get: function()
-						{
-							return System.get_totalMemory();
-						}
-					},
-				"vmVersion":
-					{
-						get: function()
-						{
-							return System.get_vmVersion();
-						}
-					},
-			});
+		untyped Object.defineProperties(System, {
+			"totalMemory": {
+				get: function()
+				{
+					return System.get_totalMemory();
+				}
+			},
+			"vmVersion": {
+				get: function()
+				{
+					return System.get_vmVersion();
+				}
+			},
+		});
 	}
 	#end
 
@@ -156,7 +162,7 @@ import cpp.vm.Gc;
 		@param node XML reference that should be made available for garbage
 					collection.
 	**/
-	// @:noCompletion @:dox(hide) @:require(flash10_1) public static function disposeXML (node:openfl.xml.XML):Void;
+	@:noCompletion @:dox(hide) public static function disposeXML(node:Dynamic):Void {}
 
 	/**
 		Closes Flash Player.
@@ -192,6 +198,7 @@ import cpp.vm.Gc;
 		#end
 	}
 
+	#if !openfl_strict
 	/**
 		Pauses Flash Player or the AIR Debug Launcher(ADL). After calling this
 		method, nothing in the application continues except the delivery of Socket
@@ -205,9 +212,11 @@ import cpp.vm.Gc;
 	{
 		openfl._internal.Lib.notImplemented();
 	}
+	#end
 
 	// @:noCompletion @:dox(hide) @:require(flash11) public static function pauseForGCIfCollectionImminent (imminence:Float = 0.75):Void;
 
+	#if !openfl_strict
 	/**
 		Resumes the application after calling `System.pause()`.
 
@@ -219,6 +228,7 @@ import cpp.vm.Gc;
 	{
 		openfl._internal.Lib.notImplemented();
 	}
+	#end
 
 	/**
 		Replaces the contents of the Clipboard with a specified text string. This
