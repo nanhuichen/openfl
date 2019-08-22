@@ -533,10 +533,10 @@ package openfl.ui {
 		public static const QUOTE:uint = 222;
 		
 		// #if air
-		// public static const NEXT:uint = 0x0100000E;
-		// public static const BACK:uint = 0x01000016;
-		// public static const SEARCH:uint = 0x0100001F;
-		// public static const MENU:uint = 0x01000012;
+		public static const NEXT:uint = 0x0100000E;
+		public static const BACK:uint = 0x01000016;
+		public static const SEARCH:uint = 0x0100001F;
+		public static const MENU:uint = 0x01000012;
 		// #end
 		
 		/**
