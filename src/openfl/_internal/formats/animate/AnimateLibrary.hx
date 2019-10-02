@@ -355,6 +355,17 @@ import openfl.utils.AssetManifest;
 	{
 		if (alpha != null)
 		{
+			if (!image.transparent)
+			{
+				#if flash
+				var copy = new Image(0, 0, image.width, image.height);
+				copy.copyPixels(image, image.rect, new Vector2());
+				image.buffer = copy.buffer;
+				#else
+				image.transparent = true;
+				#end
+			}
+
 			image.copyChannel(alpha, alpha.rect, new Vector2(), ImageChannel.RED, ImageChannel.ALPHA);
 		}
 
@@ -571,6 +582,8 @@ import openfl.utils.AssetManifest;
 
 	private function __parseSprite(data:Dynamic):AnimateSpriteSymbol
 	{
+		if (data == null) return null;
+
 		var symbol = new AnimateSpriteSymbol();
 		symbol.id = data.id;
 		symbol.className = data.className;
@@ -586,7 +599,10 @@ import openfl.utils.AssetManifest;
 			frame = new AnimateFrame();
 			frame.label = frameData.label;
 			// frame.script = frameData.script;
-			// frame.scriptSource = frameData.scriptSource;
+			if (Reflect.hasField(frameData, "scriptSource"))
+			{
+				frame.scriptSource = frameData.scriptSource;
+			}
 			objects = frameData.objects;
 			if (objects != null && objects.length > 0)
 			{

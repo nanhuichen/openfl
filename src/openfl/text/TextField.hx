@@ -2047,6 +2047,30 @@ class TextField extends InteractiveObject
 		return group.endIndex;
 	}
 
+	@:noCompletion private override function __getRenderBounds(rect:Rectangle, matrix:Matrix):Void
+	{
+		if (__scrollRect == null)
+		{
+			__updateLayout();
+
+			var bounds = Rectangle.__pool.get();
+			bounds.copyFrom(__textEngine.bounds);
+
+			// matrix.tx += __offsetX;
+			// matrix.ty += __offsetY;
+
+			bounds.__transform(bounds, matrix);
+
+			rect.__expand(bounds.x, bounds.y, bounds.width, bounds.height);
+
+			Rectangle.__pool.release(bounds);
+		}
+		else
+		{
+			super.__getRenderBounds(rect, matrix);
+		}
+	}
+
 	@:noCompletion private override function __hitTest(x:Float, y:Float, shapeFlag:Bool, stack:Array<DisplayObject>, interactiveOnly:Bool,
 			hitObject:DisplayObject):Bool
 	{
@@ -2229,7 +2253,7 @@ class TextField extends InteractiveObject
 					range.end += offset;
 				}
 			}
-			
+
 			i++;
 		}
 
@@ -2820,10 +2844,11 @@ class TextField extends InteractiveObject
 		{
 			__dirty = true;
 			__setRenderDirty();
+			__textEngine.scrollH = value;
 			dispatchEvent(new Event(Event.SCROLL));
 		}
 
-		return __textEngine.scrollH = value;
+		return __textEngine.scrollH;
 	}
 
 	@:noCompletion private function get_scrollV():Int
@@ -2835,14 +2860,15 @@ class TextField extends InteractiveObject
 	{
 		__updateLayout();
 
-		if (value != __textEngine.scrollV)
+		if (value > 0 && value != __textEngine.scrollV)
 		{
 			__dirty = true;
 			__setRenderDirty();
+			__textEngine.scrollV = value;
 			dispatchEvent(new Event(Event.SCROLL));
 		}
 
-		return __textEngine.scrollV = value;
+		return __textEngine.scrollV;
 	}
 
 	@:noCompletion private function get_selectable():Bool
