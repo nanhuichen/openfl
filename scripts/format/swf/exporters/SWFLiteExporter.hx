@@ -503,9 +503,10 @@ class SWFLiteExporter
 		{
 			frame = new Frame();
 
-			if (frameData.label != null)
+			if (frameData.labels != null)
 			{
-				frame.label = frameData.label;
+				frame.label = frameData.labels[0];
+				// TODO: frame.labels
 			}
 
 			instances.splice(0, instances.length);
@@ -891,13 +892,13 @@ class SWFLiteExporter
 							{
 								var frameNumOneIndexed = Std.parseInt(AVM2.FRAME_SCRIPT_METHOD_NAME.matched(1));
 								Log.info("", "frame script #" + frameNumOneIndexed);
-								var pcodes:Array<OpCode> = data.pcode[idx.getIndex()];
+								var pcodes:Array<{pos:Int, opr:OpCode}> = data.pcode[idx.getIndex()];
 								var js = "";
 								var prop:MultiName = null;
 								var stack:Array<Dynamic> = new Array();
 								for (pcode in pcodes)
 								{
-									switch (pcode)
+									switch (pcode.opr)
 									{
 										case OThis:
 											stack.push("this");

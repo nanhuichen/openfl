@@ -7,6 +7,7 @@ import format.abc.Data.IName;
 import format.abc.Data.Index;
 import format.abc.Data.Name;
 import format.abc.Data.Namespace;
+import format.abc.Data.OpCode;
 import format.SWF;
 import format.swf.data.SWFFrameLabel;
 import format.swf.data.SWFRawTag;
@@ -70,7 +71,7 @@ class SWFTimelineContainer extends SWFEventDispatcher
 	public var frames(default, null):Array<Frame>;
 	public var layers(default, null):Array<Layer>;
 	public var soundStream(default, null):SoundStream;
-	public var frameLabels(default, null):Map<Int, String>;
+	public var frameLabels(default, null):Map<Int, Array<String>>;
 	public var frameIndexes(default, null):Map<String, Int>;
 
 	private var currentFrame:Frame;
@@ -89,7 +90,7 @@ class SWFTimelineContainer extends SWFEventDispatcher
 	public var jpegTablesTag:TagJPEGTables;
 	public var abcTag:TagDoABC;
 	public var abcData:ABCData;
-	public var pcode:Array<Dynamic>;
+	public var pcode:Array<Array<{pos:Int, opr:OpCode}>>;
 	public var abcClasses(default, null):Map<Int, ClassDef>;
 
 	public function new()
@@ -190,7 +191,7 @@ class SWFTimelineContainer extends SWFEventDispatcher
 		layers = new Array<Layer>();
 		dictionary = new Map<Int, Int>();
 		currentFrame = new Frame();
-		frameLabels = new Map<Int, String>();
+		frameLabels = new Map<Int, Array<String>>();
 		frameIndexes = new Map<String, Int>();
 		hasSoundStream = false;
 		_tmpData = data;
@@ -419,9 +420,9 @@ class SWFTimelineContainer extends SWFEventDispatcher
 		{
 			case TagShowFrame.TYPE:
 				currentFrame.tagIndexEnd = currentTagIndex;
-				if (currentFrame.label == null && frameLabels.exists(currentFrame.frameNumber))
+				if (currentFrame.labels == null && frameLabels.exists(currentFrame.frameNumber))
 				{
-					currentFrame.label = frameLabels.get(currentFrame.frameNumber);
+					currentFrame.labels = frameLabels.get(currentFrame.frameNumber);
 				}
 				frames.push(currentFrame);
 				currentFrame = currentFrame.clone();
@@ -466,7 +467,13 @@ class SWFTimelineContainer extends SWFEventDispatcher
 				for (i in 0...tagSceneAndFrameLabelData.frameLabels.length)
 				{
 					var frameLabel:SWFFrameLabel = tagSceneAndFrameLabelData.frameLabels[i];
-					frameLabels.set(frameLabel.frameNumber, frameLabel.name);
+					var a = frameLabels.get(frameLabel.frameNumber);
+					if (a == null)
+					{
+						a = new Array();
+						frameLabels.set(frameLabel.frameNumber, a);
+					}
+					a.push(frameLabel.name);
 					frameIndexes.set(frameLabel.name, frameLabel.frameNumber + 1);
 				}
 				for (i in 0...tagSceneAndFrameLabelData.scenes.length)
@@ -476,8 +483,22 @@ class SWFTimelineContainer extends SWFEventDispatcher
 				}
 			case TagFrameLabel.TYPE:
 				var tagFrameLabel:TagFrameLabel = cast tag;
-				currentFrame.label = tagFrameLabel.frameName;
-				frameLabels.set(currentFrame.frameNumber, tagFrameLabel.frameName);
+				if (currentFrame.labels == null)
+				{
+					currentFrame.labels = [];
+				}
+				currentFrame.labels.push(tagFrameLabel.frameName);
+				if (currentFrame.label != null && currentFrame.labels.indexOf(currentFrame.label) == -1)
+				{
+					currentFrame.labels.push(currentFrame.label);
+				}
+				var a = frameLabels.get(currentFrame.frameNumber);
+				if (a == null)
+				{
+					a = new Array();
+					frameLabels.set(currentFrame.frameNumber, a);
+				}
+				a.push(tagFrameLabel.frameName);
 				frameIndexes.set(tagFrameLabel.frameName, currentFrame.frameNumber + 1);
 		}
 	}
@@ -557,7 +578,19 @@ class SWFTimelineContainer extends SWFEventDispatcher
 		pcode = new Array();
 		for (fn in abcData.functions)
 		{
-			pcode.push(format.abc.OpReader.decode(new haxe.io.BytesInput(fn.code)));
+			var i = new haxe.io.BytesInput(fn.code);
+			var opr = new format.abc.OpReader(i);
+			var ops = new Array();
+			while (true)
+			{
+				var op;
+				try
+					op = i.readByte()
+				catch (e:haxe.io.Eof)
+					break;
+				ops.push({opr: opr.readOp(op), pos: i.position});
+			}
+			pcode.push(ops);
 		}
 	}
 

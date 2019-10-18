@@ -80,10 +80,10 @@ class Bitmap extends DisplayObject
 	**/
 	public var smoothing:Bool;
 
+	@:noCompletion private var __bitmapData:BitmapData;
 	#if (js && html5)
 	@:noCompletion private var __image:ImageElement;
 	#end
-	@:noCompletion private var __bitmapData:BitmapData;
 	@:noCompletion private var __imageVersion:Int;
 
 	#if openfljs

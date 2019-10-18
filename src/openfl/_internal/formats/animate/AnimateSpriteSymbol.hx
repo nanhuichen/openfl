@@ -26,12 +26,13 @@ class AnimateSpriteSymbol extends AnimateSymbol
 
 	private function __constructor(movieClip:MovieClip):Void
 	{
-		#if flash
-		@:privateAccess cast(movieClip, flash.display.MovieClip.MovieClip2).__timeline = new AnimateTimeline(movieClip, library, this);
-		#else
-		movieClip.__timeline = new AnimateTimeline(movieClip, library, this);
-		#end
 		movieClip.scale9Grid = scale9Grid;
+		var timeline = new AnimateTimeline(library, this);
+		#if flash
+		@:privateAccess cast(movieClip, flash.display.MovieClip.MovieClip2).__fromTimeline(timeline);
+		#else
+		movieClip.__fromTimeline(timeline);
+		#end
 	}
 
 	private override function __createObject(library:AnimateLibrary):MovieClip

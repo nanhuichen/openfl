@@ -17,9 +17,8 @@ import openfl._internal.utils.Log;
 import openfl.display.DisplayObject;
 import openfl.display.FrameLabel;
 import openfl.display.MovieClip;
-import openfl.errors.ArgumentError;
+import openfl.display.Timeline;
 import openfl.events.Event;
-import openfl.events.MouseEvent;
 import openfl.filters.BitmapFilter;
 import openfl.filters.BlurFilter;
 import openfl.filters.ColorMatrixFilter;
@@ -33,150 +32,33 @@ import hscript.Interp;
 import hscript.Parser;
 #end
 
-#if !openfl_debug
-@:fileXml('tags="haxe,release"')
-@:noDebug
-#end
-@:access(openfl._internal.symbols.SWFSymbol)
-@:access(openfl.display.MovieClip)
+@:access(openfl._internal.symbols)
+@:access(openfl.display.DisplayObject)
 @:access(openfl.geom.ColorTransform)
-class Timeline
+class SymbolTimeline extends Timeline
 {
-	#if openfljs
-	@:noCompletion private static var __useParentFPS:Bool;
-	#else
-	@:noCompletion private static inline var __useParentFPS:Bool = #if (swflite_parent_fps || swf_parent_fps) true #else false #end;
-	#end
-	#if 0
-	// Suppress checkstyle warning
-	private static var __unusedImport:Array<Class<Dynamic>> = [
-		BitmapSymbol, ButtonSymbol, DynamicTextSymbol, FontSymbol, ShapeSymbol, SpriteSymbol, StaticTextSymbol, SWFSymbol, BlurFilter, ColorMatrixFilter,
-		ConvolutionFilter, DisplacementMapFilter, DropShadowFilter, GlowFilter
-	];
-	#end
-
-	// @:noCompletion @:dox(hide) public var trackAsMenu:Bool;
 	@:noCompletion private var __activeInstances:Array<FrameSymbolInstance>;
 	@:noCompletion private var __activeInstancesByFrameObjectID:Map<Int, FrameSymbolInstance>;
-	@:noCompletion private var __currentFrame:Int;
-	@:noCompletion private var __currentFrameLabel:String;
-	@:noCompletion private var __currentLabel:String;
-	@:noCompletion private var __currentLabels:Array<FrameLabel>;
-	@:noCompletion private var __enabled:Bool;
-	@:noCompletion private var __frameScripts:Map<Int, Void->Void>;
-	@:noCompletion private var __frameTime:Int;
-	@:noCompletion private var __hasDown:Bool;
-	@:noCompletion private var __hasOver:Bool;
-	@:noCompletion private var __hasUp:Bool;
 	@:noCompletion private var __instanceFields:Array<String>;
-	@:noCompletion private var __lastFrameScriptEval:Int;
-	@:noCompletion private var __lastFrameUpdate:Int;
-	@:noCompletion private var __mouseIsDown:Bool;
 	@:noCompletion private var __movieClip:MovieClip;
-	@:noCompletion private var __playing:Bool;
+	@:noCompletion private var __previousFrame:Int;
 	@:noCompletion private var __swf:SWFLite;
 	@:noCompletion private var __symbol:SpriteSymbol;
-	@:noCompletion private var __timeElapsed:Int;
-	@:noCompletion private var __totalFrames:Int;
 
-	#if openfljs
-	@:noCompletion private static function __init__()
+	public function new(swf:SWFLite, symbol:SpriteSymbol)
 	{
-		__useParentFPS = true;
-		untyped __js__("/// #if (typeof ENV === 'undefined' || (!ENV['swflite-parent-fps'] && !ENV['swf-parent-fps'])) && (typeof swf_parent_fps === 'undefined' || !swf_parent_fps) && (typeof swflite_parent_fps === 'undefined' || !swflite-parent-fps) && (typeof defines === 'undefined' || (!defines['swf-parent-fps'] && !defines['swflite-parent-fps']))");
-		__useParentFPS = false;
-		untyped __js__("/// #endif");
-	}
-	#end
+		super();
 
-	public function new(movieClip:MovieClip, swf:SWFLite, symbol:SpriteSymbol)
-	{
-		__movieClip = movieClip;
 		__swf = swf;
 		__symbol = symbol;
 
-		__currentFrame = 1;
-		__currentLabels = [];
-		__instanceFields = [];
-		__totalFrames = 0;
-		__enabled = true;
+		__previousFrame = -1;
 
-		init();
-	}
+		frameRate = swf.frameRate;
+		totalFrames = __symbol.frames.length;
+		framesLoaded = totalFrames;
 
-	public function addFrameScript(index:Int, method:Void->Void):Void
-	{
-		if (index < 0) return;
-		var frame = index + 1;
-
-		if (method != null)
-		{
-			if (__frameScripts == null)
-			{
-				__frameScripts = new Map();
-			}
-
-			__frameScripts.set(frame, method);
-		}
-		else if (__frameScripts != null)
-		{
-			__frameScripts.remove(frame);
-		}
-	}
-
-	/**
-		Starts playing the SWF file at the specified frame. This happens after all
-		remaining actions in the frame have finished executing. To specify a scene
-		as well as a frame, specify a value for the `scene` parameter.
-
-		@param frame A number representing the frame number, or a string
-					 representing the label of the frame, to which the playhead is
-					 sent. If you specify a number, it is relative to the scene
-					 you specify. If you do not specify a scene, the current scene
-					 determines the global frame number to play. If you do specify
-					 a scene, the playhead jumps to the frame number in the
-					 specified scene.
-		@param scene The name of the scene to play. This parameter is optional.
-	**/
-	public function gotoAndPlay(frame:#if (haxe_ver >= "3.4.2") Any #else Dynamic #end, scene:String = null):Void
-	{
-		play();
-		__goto(__resolveFrameReference(frame));
-	}
-
-	/**
-		Brings the playhead to the specified frame of the movie clip and stops it
-		there. This happens after all remaining actions in the frame have finished
-		executing. If you want to specify a scene in addition to a frame, specify
-		a `scene` parameter.
-
-		@param frame A number representing the frame number, or a string
-					 representing the label of the frame, to which the playhead is
-					 sent. If you specify a number, it is relative to the scene
-					 you specify. If you do not specify a scene, the current scene
-					 determines the global frame number at which to go to and
-					 stop. If you do specify a scene, the playhead goes to the
-					 frame number in the specified scene and stops.
-		@param scene The name of the scene. This parameter is optional.
-		@throws ArgumentError If the `scene` or `frame`
-							  specified are not found in this movie clip.
-	**/
-	public function gotoAndStop(frame:#if (haxe_ver >= "3.4.2") Any #else Dynamic #end, scene:String = null):Void
-	{
-		stop();
-		__goto(__resolveFrameReference(frame));
-	}
-
-	private function init():Void
-	{
-		if (__activeInstances != null) return;
-
-		__activeInstances = [];
-		__activeInstancesByFrameObjectID = new Map();
-		__currentFrame = 1;
-		__lastFrameScriptEval = -1;
-		__lastFrameUpdate = -1;
-		__totalFrames = __symbol.frames.length;
+		currentLabels = [];
 
 		var frame:Int;
 		var frameData:Frame;
@@ -192,23 +74,26 @@ class Timeline
 
 			if (frameData.label != null)
 			{
-				__currentLabels.push(new FrameLabel(frameData.label, i + 1));
+				currentLabels.push(new FrameLabel(frameData.label, i + 1));
 			}
 
 			if (frameData.script != null)
 			{
-				if (__frameScripts == null)
+				if (frameScripts == null)
 				{
-					__frameScripts = new Map();
+					frameScripts = new Map();
 				}
 
-				__frameScripts.set(frame, frameData.script);
+				frameScripts.set(frame, function(scope)
+				{
+					frameData.script();
+				});
 			}
 			else if (frameData.scriptSource != null)
 			{
-				if (__frameScripts == null)
+				if (frameScripts == null)
 				{
-					__frameScripts = new Map();
+					frameScripts = new Map();
 				}
 
 				try
@@ -222,21 +107,22 @@ class Timeline
 
 					var program = parser.parseString(frameData.scriptSource);
 					var interp = new Interp();
-					interp.variables.set("this", this);
+					interp.variables.set("flash.events_Event", Event);
 
-					var script = function()
+					var script = function(scope:MovieClip)
 					{
+						interp.variables.set("this", scope);
 						interp.execute(program);
 					};
 
-					__frameScripts.set(frame, script);
+					frameScripts.set(frame, script);
 					#elseif js
 					var script = untyped __js__("eval({0})", "(function(){" + frameData.scriptSource + "})");
-					var wrapper = function()
+					var wrapper = function(scope)
 					{
 						try
 						{
-							script.call(this);
+							script.call(scope);
 						}
 						catch (e:Dynamic)
 						{
@@ -254,7 +140,7 @@ class Timeline
 						}
 					}
 
-					__frameScripts.set(frame, wrapper);
+					frameScripts.set(frame, wrapper);
 					#end
 				}
 				catch (e:Dynamic)
@@ -271,6 +157,17 @@ class Timeline
 				}
 			}
 		}
+	}
+
+	public override function attachMovieClip(movieClip:MovieClip):Void
+	{
+		if (__activeInstances != null) return;
+
+		__movieClip = movieClip;
+
+		__activeInstances = [];
+		__activeInstancesByFrameObjectID = new Map();
+		__previousFrame = -1;
 
 		var frame:Int;
 		var frameData:Frame;
@@ -281,7 +178,7 @@ class Timeline
 
 		// TODO: Create later?
 
-		for (i in 0...__totalFrames)
+		for (i in 0...totalFrames)
 		{
 			frame = i + 1;
 			frameData = __symbol.frames[i];
@@ -325,12 +222,10 @@ class Timeline
 
 							if (displayObject != null)
 							{
-								#if !flash
 								displayObject.parent = __movieClip;
 								displayObject.stage = __movieClip.stage;
 
 								if (__movieClip.stage != null) displayObject.dispatchEvent(new Event(Event.ADDED_TO_STAGE, false, false));
-								#end
 
 								instance = new FrameSymbolInstance(frame, frameObject.id, frameObject.symbol, frameObject.depth, displayObject,
 									frameObject.clipDepth);
@@ -353,17 +248,14 @@ class Timeline
 					else if (frameObject.type == FrameObjectType.UPDATE)
 					{
 						instance = null;
-
 						if (__activeInstancesByFrameObjectID.exists (frameObject.id))
 						{
 							instance = __activeInstancesByFrameObjectID.get (frameObject.id);
 						}
-
 						if (instance != null && instance.displayObject != null)
 						{
 							__updateDisplayObject (instance.displayObject, frameObject);
 						}
-
 					}
 					else if (frameObject.type == FrameObjectType.DESTROY)
 					{
@@ -386,12 +278,7 @@ class Timeline
 			}
 		}
 
-		if (__totalFrames > 1)
-		{
-			play();
-		}
-
-		__enterFrame(0);
+		enterFrame(1);
 
 		#if (!openfljs && (!openfl_dynamic || haxe_ver >= "4.0.0"))
 		__instanceFields = Type.getInstanceFields(Type.getClass(this));
@@ -399,107 +286,9 @@ class Timeline
 		#end
 	}
 
-	/**
-		Sends the playhead to the next frame and stops it. This happens after all
-		remaining actions in the frame have finished executing.
-
-	**/
-	public function nextFrame():Void
+	public override function enterFrame(targetFrame:Int):Void
 	{
-		stop();
-		__goto(__currentFrame + 1);
-	}
-
-	// @:noCompletion @:dox(hide) public function nextScene ():Void;
-
-	/**
-		Moves the playhead in the timeline of the movie clip.
-
-	**/
-	public function play():Void
-	{
-		if (__symbol == null || __playing || __totalFrames < 2) return;
-
-		__playing = true;
-
-		if (!__useParentFPS)
-		{
-			__frameTime = Std.int(1000 / __swf.frameRate);
-			__timeElapsed = 0;
-		}
-	}
-
-	/**
-		Sends the playhead to the previous frame and stops it. This happens after
-		all remaining actions in the frame have finished executing.
-
-	**/
-	public function prevFrame():Void
-	{
-		stop();
-		__goto(__currentFrame - 1);
-	}
-
-	// @:noCompletion @:dox(hide) public function prevScene ():Void;
-
-	/**
-		Stops the playhead in the movie clip.
-
-	**/
-	public function stop():Void
-	{
-		__playing = false;
-	}
-
-	public function __enterFrame(deltaTime:Int):Void
-	{
-		__updateFrameScript(deltaTime);
-		__updateSymbol(__currentFrame);
-
-		// super.__enterFrame(deltaTime);
-	}
-
-	@:noCompletion private function __updateFrameScript(deltaTime:Int):Void
-	{
-		if (__symbol != null && __playing)
-		{
-			var nextFrame = __getNextFrame(deltaTime);
-
-			if (__lastFrameScriptEval == nextFrame)
-			{
-				// super.__enterFrame(deltaTime);
-				return;
-			}
-
-			if (__frameScripts != null)
-			{
-				if (nextFrame < __currentFrame)
-				{
-					if (!__evaluateFrameScripts(__totalFrames))
-					{
-						// super.__enterFrame(deltaTime);
-						return;
-					}
-
-					__currentFrame = 1;
-				}
-
-				if (!__evaluateFrameScripts(nextFrame))
-				{
-					// super.__enterFrame(deltaTime);
-					return;
-				}
-			}
-			else
-			{
-				__currentFrame = nextFrame;
-			}
-		}
-	}
-
-	@:noCompletion private function __updateSymbol(targetFrame:Int):Void
-	{
-		if (__symbol != null && __currentFrame != __lastFrameUpdate)
+		if (__symbol != null && targetFrame != __previousFrame)
 		{
 			__updateFrameLabel();
 
@@ -573,7 +362,7 @@ class Timeline
 
 			for (i in 0...currentInstances.length)
 			{
-				existingChild = #if flash (i < __movieClip.numChildren) ? __movieClip.getChildAt(i) : null #else __movieClip.__children[i] #end;
+				existingChild = __movieClip.__children[i];
 				instance = currentInstances[i];
 
 				targetDepth = instance.depth;
@@ -586,7 +375,7 @@ class Timeline
 				}
 				else
 				{
-					child = #if flash __movieClip.getChildAt(i) #else __movieClip.__children[i] #end;
+					child = __movieClip.__children[i];
 				}
 
 				maskApplied = false;
@@ -609,11 +398,11 @@ class Timeline
 
 			var child;
 			var i = currentInstances.length;
-			var length = #if flash __movieClip.numChildren #else __children.length #end;
+			var length = __movieClip.__children.length;
 
 			while (i < length)
 			{
-				child = #if flash __movieClip.getChildAt(i) #else __movieClip.__children[i] #end;
+				child = __movieClip.__children[i];
 
 				// TODO: Faster method of determining if this was automatically added?
 
@@ -637,101 +426,11 @@ class Timeline
 				i++;
 			}
 
-			__lastFrameUpdate = __currentFrame;
+			__previousFrame = targetFrame;
 
 			#if (!openfljs && (!openfl_dynamic || haxe_ver >= "4.0.0"))
 			__updateInstanceFields();
 			#end
-		}
-	}
-
-	@:noCompletion private function __evaluateFrameScripts(advanceToFrame:Int):Bool
-	{
-		for (frame in __currentFrame...advanceToFrame + 1)
-		{
-			if (frame == __lastFrameScriptEval) continue;
-
-			__lastFrameScriptEval = frame;
-			__currentFrame = frame;
-
-			if (__frameScripts.exists(frame))
-			{
-				__updateSymbol(frame);
-				var script = __frameScripts.get(frame);
-				script();
-
-				if (__currentFrame != frame)
-				{
-					return false;
-				}
-			}
-
-			if (!__playing)
-			{
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	@:noCompletion private function __fromSymbol(swf:SWFLite, symbol:SpriteSymbol):Void {}
-
-	@:noCompletion private function __getNextFrame(deltaTime:Int):Int
-	{
-		var nextFrame:Int = 0;
-
-		if (!__useParentFPS)
-		{
-			__timeElapsed += deltaTime;
-			nextFrame = __currentFrame + Math.floor(__timeElapsed / __frameTime);
-			if (nextFrame < 1) nextFrame = 1;
-			if (nextFrame > __totalFrames) nextFrame = Math.floor((nextFrame - 1) % __totalFrames) + 1;
-			__timeElapsed = (__timeElapsed % __frameTime);
-		}
-		else
-		{
-			nextFrame = __currentFrame + 1;
-			if (nextFrame > __totalFrames) nextFrame = 1;
-		}
-
-		return nextFrame;
-	}
-
-	@:noCompletion private function __goto(frame:Int):Void
-	{
-		if (__symbol == null) return;
-
-		if (frame < 1) frame = 1;
-		else if (frame > __totalFrames) frame = __totalFrames;
-
-		__currentFrame = frame;
-		__enterFrame(0);
-	}
-
-	@:noCompletion private function __resolveFrameReference(frame:#if (haxe_ver >= "3.4.2") Any #else Dynamic #end):Int
-	{
-		if (Std.is(frame, Int))
-		{
-			return cast frame;
-		}
-		else if (Std.is(frame, String))
-		{
-			var label:String = cast frame;
-
-			for (frameLabel in __currentLabels)
-			{
-				if (frameLabel.name == label)
-				{
-					return frameLabel.frame;
-				}
-			}
-
-			throw new ArgumentError("Error #2109: Frame label " + label + " not found in scene.");
-		}
-		else
-		{
-			throw "Invalid type for frame " + Type.getClassName(frame);
 		}
 	}
 
@@ -758,10 +457,12 @@ class Timeline
 		{
 			displayObject.transform.colorTransform = frameObject.colorTransform;
 		}
-		else if (reset #if !flash && !displayObject.transform.colorTransform.__isDefault(true) #end)
+		else if (reset && !displayObject.transform.colorTransform.__isDefault(true))
 		{
 			displayObject.transform.colorTransform = new ColorTransform();
 		}
+
+		displayObject.transform = displayObject.transform;
 
 		if (frameObject.filters != null)
 		{
@@ -812,40 +513,14 @@ class Timeline
 		#end
 	}
 
-	@:noCompletion private function __updateFrameLabel():Void
-	{
-		__currentFrameLabel = __symbol.frames[__currentFrame - 1].label;
-
-		if (__currentFrameLabel != null)
-		{
-			__currentLabel = __currentFrameLabel;
-		}
-		else
-		{
-			__currentLabel = null;
-
-			for (label in __currentLabels)
-			{
-				if (label.frame < __currentFrame)
-				{
-					__currentLabel = label.name;
-				}
-				else
-				{
-					break;
-				}
-			}
-		}
-	}
-
 	@:noCompletion private function __updateInstanceFields():Void
 	{
+		if (__instanceFields == null) return;
+
 		for (field in __instanceFields)
 		{
-			var length = #if flash __movieClip.numChildren #else __movieClip.__children.length #end;
-			for (i in 0...length)
+			for (child in __movieClip.__children)
 			{
-				var child = #if flash __movieClip.getChildAt(i) #else __movieClip.__children[i] #end;
 				if (child.name == field)
 				{
 					Reflect.setField(this, field, child);
