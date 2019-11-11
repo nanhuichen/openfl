@@ -6,6 +6,7 @@ import format.swf.data.consts.BitmapFormat;
 import format.swf.data.consts.BlendMode;
 import format.swf.data.filters.IFilter;
 import format.swf.data.SWFButtonRecord;
+import format.swf.data.SWFSymbol;
 import format.swf.exporters.ShapeBitmapExporter;
 import format.swf.exporters.ShapeCommandExporter;
 import format.swf.tags.IDefinitionTag;
@@ -63,12 +64,29 @@ class SWFLibraryExporter
 	private var manifestData:AssetManifest;
 	private var outputList:List<Entry>;
 	private var swfData:SWFRoot;
+	private var symbols:Array<SWFSymbol>;
+	private var symbolsByTagID:Map<Int, SWFSymbol>;
 	private var targetPath:String;
 
 	public function new(swfData:SWFRoot, targetPath:String)
 	{
 		this.swfData = swfData;
 		this.targetPath = targetPath;
+
+		symbols = [];
+		symbolsByTagID = new Map();
+
+		for (tag in swfData.tags)
+		{
+			if (Std.is(tag, TagSymbolClass))
+			{
+				for (symbol in cast(tag, TagSymbolClass).symbols)
+				{
+					symbols.push(symbol);
+					symbolsByTagID.set(symbol.tagId, symbol);
+				}
+			}
+		}
 
 		manifestData = new AssetManifest();
 		libraryData = new SWFDocument();
@@ -85,15 +103,9 @@ class SWFLibraryExporter
 		libraryData.frameRate = swfData.frameRate;
 		addSprite(swfData, true);
 
-		for (tag in swfData.tags)
+		for (symbol in symbols)
 		{
-			if (Std.is(tag, TagSymbolClass))
-			{
-				for (symbol in cast(tag, TagSymbolClass).symbols)
-				{
-					processSymbol(symbol);
-				}
-			}
+			processSymbol(symbol);
 		}
 
 		// TODO: Compressed
@@ -795,31 +807,18 @@ class SWFLibraryExporter
 		var scripts = null;
 		var found = false;
 
-		// TODO: Less looping
-		for (tag in swfData.tags)
+		var swfSymbol = symbolsByTagID.get(symbol.id);
+		if (swfSymbol != null)
 		{
-			if (Std.is(tag, TagSymbolClass))
+			var scripts = FrameScriptParser.convertToJS(swfData, swfSymbol.name);
+			if (scripts != null)
 			{
-				for (classSymbol in cast(tag, TagSymbolClass).symbols)
+				for (i in 0...scripts.length)
 				{
-					if (classSymbol.tagId == symbol.id || (root && ~/_fla\.MainTimeline$/.match(classSymbol.name)))
+					if (scripts[i] != null && symbol.frames[i] != null)
 					{
-						scripts = FrameScriptParser.convertToJS(swfData, classSymbol.name);
-						found = true;
-						break;
+						symbol.frames[i].scriptSource = scripts[i];
 					}
-				}
-			}
-			if (found) break;
-		}
-
-		if (scripts != null)
-		{
-			for (i in 0...scripts.length)
-			{
-				if (scripts[i] != null && symbol.frames[i] != null)
-				{
-					symbol.frames[i].scriptSource = scripts[i];
 				}
 			}
 		}

@@ -470,7 +470,7 @@ class Context3DGraphics
 	{
 		if (!graphics.__visible || graphics.__commands.length == 0) return;
 
-		if ((graphics.__bitmap != null && !graphics.__dirty) || !isCompatible(graphics))
+		if ((graphics.__bitmap != null && !graphics.__dirty) #if !hwgraphics || !isCompatible(graphics) #end)
 		{
 			// if (graphics.__quadBuffer != null || graphics.__triangleIndexBuffer != null) {
 
@@ -499,6 +499,16 @@ class Context3DGraphics
 		}
 		else
 		{
+			#if hwgraphics
+			if (!isCompatible(graphics))
+			{
+				openfl._internal.renderer.opengl.utils.GraphicsRenderer.render(graphics, renderer);
+				graphics.__hardwareDirty = false;
+				graphics.__dirty = false;
+				return;
+			}
+			#end
+
 			graphics.__bitmap = null;
 			graphics.__update(renderer.__worldTransform);
 
@@ -537,10 +547,12 @@ class Context3DGraphics
 				var vertexBufferPosition = 0;
 				var vertexBufferPositionUVT = 0;
 
+				#if !disable_batcher
 				if (graphics.__commands.length > 0)
 				{
 					renderer.batcher.flush();
 				}
+				#end
 
 				for (type in graphics.__commands.types)
 				{

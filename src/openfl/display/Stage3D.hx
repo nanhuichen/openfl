@@ -187,9 +187,11 @@ class Stage3D extends EventDispatcher
 	@:noCompletion private var __y:Float;
 	#if (js && html5)
 	@:noCompletion private var __canvas:CanvasElement;
-	@:noCompletion private var __renderContext:RenderContext;
 	@:noCompletion private var __style:CSSStyleDeclaration;
 	@:noCompletion private var __webgl:RenderingContext;
+	#end
+	#if lime
+	@:noCompletion private var __renderContext:RenderContext;
 	#end
 
 	#if openfljs
@@ -433,10 +435,10 @@ class Stage3D extends EventDispatcher
 			// }
 		}
 		#end
-		else
-		{
-			__dispatchError();
-		}
+	else
+	{
+		__dispatchError();
+	}
 	}
 
 	@:noCompletion private function __dispatchError():Void

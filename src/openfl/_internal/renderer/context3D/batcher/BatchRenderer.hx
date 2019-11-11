@@ -70,7 +70,9 @@ class BatchRenderer
 		__indexBuffer = context.createIndexBuffer(__maxQuads * 6, STATIC_DRAW);
 		__indexBuffer.uploadFromTypedArray(__createIndicesForQuads(__maxQuads));
 
+		#if !macro
 		__shader.aTextureId.__useArray = true;
+		#end
 		__samplers = [for (i in 0...__maxTextures) Reflect.field(__shader.data, "uSampler" + i)];
 	}
 
@@ -137,6 +139,9 @@ class BatchRenderer
 	public function pushQuad(bitmapData:BitmapData, blendMode:BlendMode, alpha:Float, colorTransform:ColorTransform = null)
 	{
 		var terminateBatch:Bool = __batch.numQuads >= __maxQuads || __batch.blendMode != blendMode;
+		#if (disable_batcher || openfl_disable_batcher)
+		terminateBatch = true;
+		#end
 		if (terminateBatch)
 		{
 			flush();
@@ -179,7 +184,6 @@ class BatchRenderer
 		var context = renderer.context3D;
 
 		context.setCulling(NONE);
-		context.setScissorRectangle(null);
 		renderer.__setBlendMode(__batch.blendMode);
 
 		context.__bindGLArrayBuffer(__vertexBuffer.__id);
@@ -206,7 +210,9 @@ class BatchRenderer
 		context.setVertexBufferAt(__shader.__textureCoord.index, __vertexBuffer, 2, FLOAT_2);
 		context.setVertexBufferAt(__shader.__colorMultiplier.index, __vertexBuffer, 4, FLOAT_4);
 		context.setVertexBufferAt(__shader.__colorOffset.index, __vertexBuffer, 8, FLOAT_4);
+		#if !macro
 		context.setVertexBufferAt(__shader.aTextureId.index, __vertexBuffer, 12, FLOAT_1);
+		#end
 
 		context.drawTriangles(__indexBuffer, 0, __batch.numQuads * 2);
 

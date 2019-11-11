@@ -15,6 +15,7 @@ extern class MovieClip extends Sprite #if openfl_dynamic implements Dynamic #end
 	@:require(flash10) public var currentFrameLabel(default, never):String;
 	public var currentLabel(default, never):String;
 	public var currentLabels(default, never):Array<FrameLabel>;
+	public var currentScene:Scene;
 	public var enabled:Bool;
 	public var framesLoaded(default, never):Int;
 	@:require(flash11) public var isPlaying(default, never):Bool;
@@ -27,10 +28,10 @@ extern class MovieClip extends Sprite #if openfl_dynamic implements Dynamic #end
 	#end
 	public function new();
 	public function addFrameScript(index:Int, method:Void->Void):Void;
-	public static function fromTimeline(timeline:Timeline):MovieClip
+	public static inline function fromTimeline(timeline:Timeline):MovieClip
 	{
 		var movieClip = new MovieClip2();
-		@:privateAccess movieClip.__fromTimeline(timeline);
+		movieClip.attachTimeline(timeline);
 		return movieClip;
 	}
 	public function gotoAndPlay(frame:Object, scene:String = null):Void;
@@ -57,11 +58,18 @@ extern class MovieClip extends Sprite #if openfl_dynamic implements Dynamic #end
 	@:noCompletion private var __mouseIsDown:Bool;
 	@:noCompletion private var __timeline:Timeline;
 
-	public function new()
+	public function new(timeline:Timeline = null)
 	{
 		super();
 
 		__cacheTime = Lib.getTimer();
+
+		if (timeline != null)
+		{
+			__timeline = timeline;
+			__timeline.__attachMovieClip(this);
+			play();
+		}
 
 		if (MovieClip.__constructor != null)
 		{
@@ -72,6 +80,16 @@ extern class MovieClip extends Sprite #if openfl_dynamic implements Dynamic #end
 		}
 
 		FlashRenderer.register(this);
+	}
+
+	public function attachTimeline(timeline:Timeline):Void
+	{
+		__timeline = timeline;
+		if (timeline != null)
+		{
+			timeline.__attachMovieClip(this);
+			play();
+		}
 	}
 
 	// public override function addFrameScript(index:Int, method:Void->Void):Void
@@ -94,6 +112,11 @@ extern class MovieClip extends Sprite #if openfl_dynamic implements Dynamic #end
 		if (__timeline != null) __timeline.__nextFrame();
 	}
 
+	public override function nextScene():Void
+	{
+		if (__timeline != null) __timeline.__nextScene();
+	}
+
 	public override function play():Void
 	{
 		if (__timeline != null) __timeline.__play();
@@ -104,17 +127,14 @@ extern class MovieClip extends Sprite #if openfl_dynamic implements Dynamic #end
 		if (__timeline != null) __timeline.__prevFrame();
 	}
 
+	public override function prevScene():Void
+	{
+		if (__timeline != null) __timeline.__prevScene();
+	}
+
 	public override function stop():Void
 	{
 		if (__timeline != null) __timeline.__stop();
-	}
-
-	@:noCompletion private function __fromTimeline(timeline:Timeline):Void
-	{
-		__timeline = timeline;
-		timeline.__scope = this;
-		timeline.attachMovieClip(this);
-		play();
 	}
 
 	@:noCompletion private function __renderFlash():Void
@@ -269,11 +289,23 @@ extern class MovieClip extends Sprite #if openfl_dynamic implements Dynamic #end
 	{
 		if (__timeline != null)
 		{
-			return __timeline.currentLabels;
+			return __timeline.__currentLabels;
 		}
 		else
 		{
-			return null;
+			return [];
+		}
+	}
+
+	@:getter(currentScene) @:noCompletion private function get_currentScene():Scene
+	{
+		if (__timeline != null)
+		{
+			return __timeline.__currentScene;
+		}
+		else
+		{
+			return this.currentScene;
 		}
 	}
 
@@ -281,7 +313,7 @@ extern class MovieClip extends Sprite #if openfl_dynamic implements Dynamic #end
 	{
 		if (__timeline != null)
 		{
-			return __timeline.framesLoaded;
+			return __timeline.__framesLoaded;
 		}
 		else
 		{
@@ -301,11 +333,23 @@ extern class MovieClip extends Sprite #if openfl_dynamic implements Dynamic #end
 		}
 	}
 
+	@:getter(scenes) @:noCompletion private function get_scenes():Array<Scene>
+	{
+		if (__timeline != null)
+		{
+			return __timeline.scenes;
+		}
+		else
+		{
+			return null;
+		}
+	}
+
 	@:getter(totalFrames) @:noCompletion private function get_totalFrames():Int
 	{
 		if (__timeline != null)
 		{
-			return __timeline.totalFrames;
+			return __timeline.__totalFrames;
 		}
 		else
 		{

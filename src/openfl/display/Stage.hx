@@ -37,7 +37,6 @@ import lime.ui.GamepadAxis;
 import lime.ui.GamepadButton;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
-import lime.ui.MouseCursor as LimeMouseCursor;
 import lime.ui.MouseWheelMode;
 import lime.ui.Window;
 #if !display
@@ -869,9 +868,6 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 	@:noCompletion private var __colorString:String;
 	@:noCompletion private var __contentsScaleFactor:Float;
 	@:noCompletion private var __currentTabOrderIndex:Int;
-	#if (commonjs && !nodejs)
-	@:noCompletion private var __cursor:LimeMouseCursor;
-	#end
 	@:noCompletion private var __deltaTime:Int;
 	@:noCompletion private var __dirty:Bool;
 	@:noCompletion private var __displayMatrix:Matrix;
@@ -1240,6 +1236,13 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 			__renderer.__stage = this;
 
 			__renderer.__resize(windowWidth, windowHeight);
+
+			if (BitmapData.__hardwareRenderer != null)
+			{
+				BitmapData.__hardwareRenderer.__stage = this;
+				BitmapData.__hardwareRenderer.__worldTransform = __displayMatrix.clone();
+				BitmapData.__hardwareRenderer.__resize(windowWidth, windowHeight);
+			}
 		}
 		#end
 	}
@@ -2210,6 +2213,11 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		var currentFocus = focus;
 		focus = null;
 		__cacheFocus = currentFocus;
+
+		MouseEvent.__altKey = false;
+		MouseEvent.__commandKey = false;
+		MouseEvent.__ctrlKey = false;
+		MouseEvent.__shiftKey = false;
 	}
 
 	@:noCompletion private function __onLimeWindowFullscreen(window:Window):Void
@@ -2652,8 +2660,11 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		__displayMatrix.__transformInversePoint(targetPoint);
 		var delta = Std.int(deltaY);
 
-		__dispatchStack(MouseEvent.__create(MouseEvent.MOUSE_WHEEL, 0, __mouseX, __mouseY, target.__globalToLocal(targetPoint, targetPoint), target, delta),
-			stack);
+		var event = MouseEvent.__create(MouseEvent.MOUSE_WHEEL, 0, __mouseX, __mouseY, target.__globalToLocal(targetPoint, targetPoint), target, delta);
+		event.cancelable = true;
+		__dispatchStack(event, stack);
+		if (event.isDefaultPrevented())
+			window.onMouseWheel.cancel();
 
 		Point.__pool.release(targetPoint);
 	}

@@ -474,9 +474,14 @@ class Context3DRenderer extends Context3DRendererAPI
 
 	private override function __drawBitmapData(bitmapData:BitmapData, source:IBitmapDrawable, clipRect:Rectangle):Void
 	{
+		var clipMatrix = null;
+
 		if (clipRect != null)
 		{
-			__pushMaskRect(clipRect, source.__renderTransform);
+			clipMatrix = Matrix.__pool.get();
+			clipMatrix.copyFrom(__worldTransform);
+			clipMatrix.invert();
+			__pushMaskRect(clipRect, clipMatrix);
 		}
 
 		var context = context3D;
@@ -486,7 +491,9 @@ class Context3DRenderer extends Context3DRendererAPI
 		var cacheRTTAntiAlias = context.__state.renderToTextureAntiAlias;
 		var cacheRTTSurfaceSelector = context.__state.renderToTextureSurfaceSelector;
 
+		var prevRenderTarget = __defaultRenderTarget;
 		context.setRenderToTexture(bitmapData.getTexture(context), true);
+		__setRenderTarget(bitmapData);
 
 		__render(source);
 
@@ -499,9 +506,12 @@ class Context3DRenderer extends Context3DRendererAPI
 			context.setRenderToBackBuffer();
 		}
 
+		__setRenderTarget(prevRenderTarget);
+
 		if (clipRect != null)
 		{
 			__popMaskRect();
+			Matrix.__pool.release(clipMatrix);
 		}
 	}
 
@@ -626,6 +636,7 @@ class Context3DRenderer extends Context3DRendererAPI
 		__gl = context.__context.webgl;
 		gl = __gl;
 
+		#if !disable_batcher
 		if (batcher == null)
 		{
 			batcher = new BatchRenderer(this, 4096);
@@ -634,6 +645,7 @@ class Context3DRenderer extends Context3DRendererAPI
 		{
 			batcher.flush();
 		}
+		#end
 
 		__defaultRenderTarget = defaultRenderTarget;
 		__flipped = (__defaultRenderTarget == null);
@@ -710,7 +722,9 @@ class Context3DRenderer extends Context3DRendererAPI
 	{
 		if (__stencilReference == 0) return;
 
+		#if !disable_batcher
 		batcher.flush();
+		#end
 
 		var mask = __maskObjects.pop();
 
@@ -722,7 +736,9 @@ class Context3DRenderer extends Context3DRendererAPI
 
 			__renderMask(mask);
 
+			#if !disable_batcher
 			batcher.flush();
+			#end
 
 			__stencilReference--;
 
@@ -764,7 +780,6 @@ class Context3DRenderer extends Context3DRendererAPI
 		if (__numClipRects > 0)
 		{
 			__numClipRects--;
-
 			if (__numClipRects > 0)
 			{
 				__scissorRect(__clipRects[__numClipRects - 1]);
@@ -788,7 +803,9 @@ class Context3DRenderer extends Context3DRendererAPI
 
 	private function __pushMask(mask:DisplayObject):Void
 	{
+		#if !disable_batcher
 		batcher.flush();
+		#end
 
 		if (__stencilReference == 0)
 		{
@@ -802,7 +819,9 @@ class Context3DRenderer extends Context3DRendererAPI
 
 		__renderMask(mask);
 
+		#if !disable_batcher
 		batcher.flush();
+		#end
 
 		__maskObjects.push(mask);
 		__stencilReference++;
@@ -900,8 +919,10 @@ class Context3DRenderer extends Context3DRendererAPI
 				__renderDisplayObject(cast object);
 			}
 
+			#if !disable_batcher
 			// flush whatever is left in the batch to render
 			batcher.flush();
+			#end
 
 			// TODO: Handle this in Context3D as a viewport?
 
@@ -981,11 +1002,15 @@ class Context3DRenderer extends Context3DRendererAPI
 				}
 			}
 
+			#if !disable_batcher
 			// flush whatever is left in the batch to render
 			batcher.flush();
+			#end
 
 			object.__mask = cacheMask;
 			object.__scrollRect = cacheScrollRect;
+
+			context3D.setScissorRectangle(null);
 		}
 
 		context3D.present();
@@ -1002,7 +1027,7 @@ class Context3DRenderer extends Context3DRendererAPI
 
 		if (bitmap.__cacheBitmap != null && !bitmap.__isCacheBitmapRender)
 		{
-			Context3DBitmap.render(bitmap.__cacheBitmap, this);
+			Context3DBitmap.render2(bitmap.__cacheBitmap, this);
 		}
 		else
 		{
@@ -1058,6 +1083,12 @@ class Context3DRenderer extends Context3DRendererAPI
 					__renderTilemap(cast object);
 				case VIDEO:
 					__renderVideo(cast object);
+				#if draft
+				case GL_GRAPHICS:
+					openfl.display.HWGraphics.render(cast object, this);
+				case GEOMETRY:
+					openfl._internal.renderer.context3D.Context3DGeometry.render(cast object, this);
+				#end
 				default:
 			}
 
@@ -1098,7 +1129,7 @@ class Context3DRenderer extends Context3DRendererAPI
 
 		if (container.__cacheBitmap != null && !container.__isCacheBitmapRender)
 		{
-			Context3DBitmap.render(container.__cacheBitmap, this);
+			Context3DBitmap.render2(container.__cacheBitmap, this);
 		}
 		else
 		{
@@ -1239,7 +1270,7 @@ class Context3DRenderer extends Context3DRendererAPI
 
 		if (shape.__cacheBitmap != null && !shape.__isCacheBitmapRender)
 		{
-			Context3DBitmap.render(shape.__cacheBitmap, this);
+			Context3DBitmap.render2(shape.__cacheBitmap, this);
 		}
 		else
 		{
@@ -1262,7 +1293,7 @@ class Context3DRenderer extends Context3DRendererAPI
 
 		if (textField.__cacheBitmap != null && !textField.__isCacheBitmapRender)
 		{
-			Context3DBitmap.render(textField.__cacheBitmap, this);
+			Context3DBitmap.render2(textField.__cacheBitmap, this);
 		}
 		else
 		{
@@ -1277,7 +1308,7 @@ class Context3DRenderer extends Context3DRendererAPI
 
 		if (tilemap.__cacheBitmap != null && !tilemap.__isCacheBitmapRender)
 		{
-			Context3DBitmap.render(tilemap.__cacheBitmap, this);
+			Context3DBitmap.render2(tilemap.__cacheBitmap, this);
 		}
 		else
 		{
@@ -1296,8 +1327,8 @@ class Context3DRenderer extends Context3DRendererAPI
 		__width = width;
 		__height = height;
 
-		var w = (__defaultRenderTarget == null) ? __stage.stageWidth : __defaultRenderTarget.width;
-		var h = (__defaultRenderTarget == null) ? __stage.stageHeight : __defaultRenderTarget.height;
+		var w = (__defaultRenderTarget == null) ? __stage.stageWidth : __defaultRenderTarget.__textureWidth;
+		var h = (__defaultRenderTarget == null) ? __stage.stageHeight : __defaultRenderTarget.__textureHeight;
 
 		__offsetX = __defaultRenderTarget == null ? Math.round(__worldTransform.__transformX(0, 0)) : 0;
 		__offsetY = __defaultRenderTarget == null ? Math.round(__worldTransform.__transformY(0, 0)) : 0;
@@ -1333,7 +1364,9 @@ class Context3DRenderer extends Context3DRendererAPI
 
 	private function __scissorRect(clipRect:Rectangle = null):Void
 	{
+		#if !disable_batcher
 		batcher.flush();
+		#end
 
 		if (clipRect != null)
 		{

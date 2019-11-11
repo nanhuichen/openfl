@@ -944,14 +944,8 @@ class BitmapData implements IBitmapDrawable
 		_colorTransform.__copyFrom(source.__worldColorTransform);
 		_colorTransform.__invert();
 
-		if (!readable && __texture != null && __hardwareRenderer != null)
+		if (!readable && __hardwareRenderer != null && getTexture(__hardwareRenderer.context3D) != null)
 		{
-			if (__textureContext == null)
-			{
-				// TODO: Some way to select current GL context for renderer?
-				__textureContext = Application.current.window.context;
-			}
-
 			if (colorTransform != null)
 			{
 				_colorTransform.__combine(colorTransform);
@@ -963,8 +957,6 @@ class BitmapData implements IBitmapDrawable
 			__hardwareRenderer.__worldTransform = transform;
 			__hardwareRenderer.__worldAlpha = 1 / source.__worldAlpha;
 			__hardwareRenderer.__worldColorTransform = _colorTransform;
-
-			__hardwareRenderer.__resize(width, height);
 
 			__hardwareRenderer.__drawBitmapData(this, source, clipRect);
 		}
@@ -1230,19 +1222,15 @@ class BitmapData implements IBitmapDrawable
 
 	#if (!openfl_doc_gen || (!js && !html5 && !flash_doc_gen))
 	/**
-		Creates a new BitmapData instance from Base64-encoded data immediately.
+		Creates a new BitmapData instance from Base64-encoded data synchronously. This means
+		that the BitmapData will be returned immediately (if supported).
 
-		The returned BitmapData will have a width and height of zero initially, then it
-		will populate with image data once decoding is successful.
-
-		If you must know when the data will be decoded, use the `loadFromBase64` method
-		instead.
-
-		All platforms except for HTML5 will currently return `null`
+		HTML5 and Flash do not support creating BitmapData synchronously, so these targets
+		always return `null`. Other targets will return `null` if decoding was unsuccessful.
 
 		@param	base64	Base64-encoded data
 		@param	type	The MIME-type for the encoded data ("image/jpeg", etc)
-		@returns	A BitmapData when targeting HTML5 or `null` on all other targets
+		@returns	A new BitmapData if successful, or `null` if unsuccessful
 	**/
 	public static function fromBase64(base64:String, type:String):BitmapData
 	{
@@ -1625,7 +1613,7 @@ class BitmapData implements IBitmapDrawable
 		return __indexBuffer;
 	}
 
-	#if lime
+	#if (lime && !disable_batcher)
 	@:dox(hide) public function pushQuadsToBatcher(batcher:BatchRenderer, transform:Matrix, alpha:Float, object:DisplayObject):Void
 	{
 		var blendMode = object.__worldBlendMode;
@@ -2305,10 +2293,17 @@ class BitmapData implements IBitmapDrawable
 	{
 		if (!__isValid) return null;
 
+		if (!readable && image == null && (__texture == null || __textureContext != context.__context))
+		{
+			__textureContext = null;
+			__texture = null;
+			return null;
+		}
+
 		if (__texture == null || __textureContext != context.__context)
 		{
 			__textureContext = context.__context;
-			__texture = context.createRectangleTexture(width, height, BGRA, false);
+			__texture = context.createRectangleTexture(__textureWidth, __textureHeight, BGRA, false);
 
 			// context.__bindGLTexture2D (__texture);
 			// gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
