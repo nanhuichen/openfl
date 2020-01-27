@@ -3,7 +3,7 @@ package openfl.display;
 #if !flash
 import openfl.geom.Matrix;
 import openfl.geom.Rectangle;
-#if (js && html5)
+#if openfl_html5
 import js.html.ImageElement;
 #end
 
@@ -81,7 +81,7 @@ class Bitmap extends DisplayObject
 	public var smoothing:Bool;
 
 	@:noCompletion private var __bitmapData:BitmapData;
-	#if (js && html5)
+	#if openfl_html5
 	@:noCompletion private var __image:ImageElement;
 	#end
 	@:noCompletion private var __imageVersion:Int;
@@ -119,14 +119,6 @@ class Bitmap extends DisplayObject
 		if (pixelSnapping == null)
 		{
 			this.pixelSnapping = PixelSnapping.AUTO;
-		}
-	}
-
-	@:noCompletion private override function __enterFrame(deltaTime:Int):Void
-	{
-		if (__bitmapData != null && __bitmapData.image != null && __bitmapData.image.version != __imageVersion)
-		{
-			__setRenderDirty();
 		}
 	}
 
@@ -204,6 +196,7 @@ class Bitmap extends DisplayObject
 		__bitmapData = value;
 		smoothing = false;
 
+		__localBoundsDirty = true;
 		__setRenderDirty();
 
 		if (__filters != null)
@@ -220,7 +213,7 @@ class Bitmap extends DisplayObject
 	{
 		if (__bitmapData != null)
 		{
-			scaleY = value / __bitmapData.height; //get_height();
+			scaleY = value / __bitmapData.height; // get_height();
 		}
 		else
 		{
@@ -233,7 +226,7 @@ class Bitmap extends DisplayObject
 	{
 		if (__bitmapData != null)
 		{
-			scaleX = value / __bitmapData.width;// get_width();
+			scaleX = value / __bitmapData.width; // get_width();
 		}
 		else
 		{

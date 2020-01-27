@@ -8,8 +8,9 @@ import openfl.geom.ColorTransform;
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
 #if lime
-import lime._internal.graphics.ImageDataUtil; // TODO
-
+import lime._internal.graphics.ImageDataUtil;
+#else
+import openfl._internal.backend.lime_standalone.ImageDataUtil;
 #end
 
 /**
@@ -242,34 +243,34 @@ import lime._internal.graphics.ImageDataUtil; // TODO
 	@:noCompletion private override function __applyFilter(bitmapData:BitmapData, sourceBitmapData:BitmapData, sourceRect:Rectangle,
 			destPoint:Point):BitmapData
 	{
+		#if (lime || openfl_html5)
 		// TODO: Support knockout, inner
 
-		#if lime
 		var r = (__color >> 16) & 0xFF;
 		var g = (__color >> 8) & 0xFF;
 		var b = __color & 0xFF;
 
 		if (__inner || __knockout)
 		{
-			sourceBitmapData.image.colorTransform(sourceBitmapData.image.rect, new ColorTransform(1, 1, 1, 0, 0, 0, 0, -255).__toLimeColorMatrix());
-			sourceBitmapData.image.dirty = true;
-			sourceBitmapData.image.version++;
+			sourceBitmapData.limeImage.colorTransform(sourceBitmapData.limeImage.rect, new ColorTransform(1, 1, 1, 0, 0, 0, 0, -255).__toLimeColorMatrix());
+			sourceBitmapData.limeImage.dirty = true;
+			sourceBitmapData.limeImage.version++;
 			bitmapData = sourceBitmapData.clone();
 			return bitmapData;
 		}
 
-		var finalImage = ImageDataUtil.gaussianBlur(bitmapData.image, sourceBitmapData.image, sourceRect.__toLimeRectangle(), destPoint.__toLimeVector2(),
-			__blurX, __blurY, __quality, __strength);
+		var finalImage = ImageDataUtil.gaussianBlur(bitmapData.limeImage, sourceBitmapData.limeImage, sourceRect.__toLimeRectangle(),
+			destPoint.__toLimeVector2(), __blurX, __blurY, __quality, __strength);
 		finalImage.colorTransform(finalImage.rect, new ColorTransform(0, 0, 0, __alpha, r, g, b, 0).__toLimeColorMatrix());
 
-		if (finalImage == bitmapData.image) return bitmapData;
+		if (finalImage == bitmapData.limeImage) return bitmapData;
 		#end
 		return sourceBitmapData;
 	}
 
 	@:noCompletion private override function __initShader(renderer:DisplayObjectRenderer, pass:Int, sourceBitmapData:BitmapData):Shader
 	{
-		#if !macro
+		#if (!macro && openfl_gl)
 		// First pass of inner glow is invert alpha
 		if (__inner && pass == 0)
 		{
@@ -563,7 +564,7 @@ private class BlurAlphaShader extends BitmapFilterShader
 	public function new()
 	{
 		super();
-		#if !macro
+		#if (!macro && openfl_gl)
 		uRadius.value = [0, 0];
 		uColor.value = [0, 0, 0, 0];
 		uStrength.value = [1];
@@ -604,7 +605,7 @@ private class CombineShader extends BitmapFilterShader
 	public function new()
 	{
 		super();
-		#if !macro
+		#if (!macro && openfl_gl)
 		offset.value = [0, 0];
 		#end
 	}
@@ -643,7 +644,7 @@ private class InnerCombineShader extends BitmapFilterShader
 	public function new()
 	{
 		super();
-		#if !macro
+		#if (!macro && openfl_gl)
 		offset.value = [0, 0];
 		#end
 	}
@@ -682,7 +683,7 @@ private class CombineKnockoutShader extends BitmapFilterShader
 	public function new()
 	{
 		super();
-		#if !macro
+		#if (!macro && openfl_gl)
 		offset.value = [0, 0];
 		#end
 	}
@@ -721,7 +722,7 @@ private class InnerCombineKnockoutShader extends BitmapFilterShader
 	public function new()
 	{
 		super();
-		#if !macro
+		#if (!macro && openfl_gl)
 		offset.value = [0, 0];
 		#end
 	}

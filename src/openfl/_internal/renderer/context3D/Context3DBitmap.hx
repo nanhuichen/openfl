@@ -1,5 +1,6 @@
 package openfl._internal.renderer.context3D;
 
+#if openfl_gl
 import openfl.display.Bitmap;
 import openfl.geom.Matrix;
 #if gl_stats
@@ -36,7 +37,7 @@ class Context3DBitmap
 			var bitmapData = bitmap.bitmapData;
 			var transform = renderer.__getDisplayTransformTempMatrix(bitmap.__renderTransform, bitmap.pixelSnapping);
 			var alpha = renderer.__getAlpha(bitmap.__worldAlpha);
-			bitmapData.pushQuadsToBatcher(renderer.batcher, transform, alpha, bitmap);
+			Context3DBitmapData.pushQuadsToBatcher(bitmapData, renderer.batcher, transform, alpha, bitmap);
 
 			if (!alphaMask) renderer.__popMaskObject(bitmap);
 			#else
@@ -65,7 +66,7 @@ class Context3DBitmap
 			if (alphaMask)
 			{
 				// renderer.__updateCacheBitmap(bitmap.mask, false);
-				// renderer.__currentShader.__alphaTexture.input = bitmap.mask.__cacheBitmapDataTexture;
+				// renderer.__currentShader.__alphaTexture.input = bitmap.mask.__renderData.cacheBitmapDataTexture;
 
 				// TODO: Use update cache bitmap always (filters) but keep cacheAsBitmap on a plain bitmap cheap?
 				var maskBitmap:Bitmap = cast bitmap.mask;
@@ -153,7 +154,7 @@ class Context3DBitmap
 			if (alphaMask)
 			{
 				// renderer.__updateCacheBitmap(bitmap.mask, false);
-				// renderer.__currentShader.__alphaTexture.input = bitmap.mask.__cacheBitmapDataTexture;
+				// renderer.__currentShader.__alphaTexture.input = bitmap.mask.__renderData.cacheBitmapDataTexture;
 
 				// TODO: Use update cache bitmap always (filters) but keep cacheAsBitmap on a plain bitmap cheap?
 				var maskBitmap:Bitmap = cast bitmap.mask;
@@ -222,3 +223,4 @@ class Context3DBitmap
 		}
 	}
 }
+#end

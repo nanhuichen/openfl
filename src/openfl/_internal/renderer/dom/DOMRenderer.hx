@@ -1,27 +1,28 @@
 package openfl._internal.renderer.dom;
 
+#if openfl_html5
 import js.html.Element;
-import lime._internal.graphics.ImageCanvasUtil;
-import lime.graphics.DOMRenderContext;
 import openfl._internal.renderer.canvas.CanvasRenderer;
 import openfl.display.Bitmap;
-import openfl.display.BitmapData;
 import openfl.display.BlendMode;
 import openfl.display.DOMElement;
 import openfl.display.DOMRenderer as DOMRendererAPI;
 import openfl.display.DisplayObject;
 import openfl.display.DisplayObjectContainer;
 import openfl.display.IBitmapDrawable;
-import openfl.display.Shape;
 import openfl.display.SimpleButton;
 import openfl.display.Tilemap;
 import openfl.events.RenderEvent;
 import openfl.geom.ColorTransform;
 import openfl.geom.Matrix;
-import openfl.geom.Point;
 import openfl.geom.Rectangle;
 import openfl.media.Video;
 import openfl.text.TextField;
+#if !lime
+import openfl._internal.backend.lime_standalone.DOMRenderContext;
+#else
+import lime.graphics.DOMRenderContext;
+#end
 
 /**
 	**BETA**
@@ -100,12 +101,12 @@ class DOMRenderer extends DOMRendererAPI
 	{
 		if (parent != null && childElement != null)
 		{
-			if (parent.__style == null || childElement.parentElement != element)
+			if (parent.__renderData.style == null || childElement.parentElement != element)
 			{
 				__initializeElement(parent, childElement);
 			}
 
-			parent.__style = childElement.style;
+			parent.__renderData.style = childElement.style;
 
 			__updateClip(parent);
 			__applyStyle(parent, true, true, true);
@@ -122,8 +123,8 @@ class DOMRenderer extends DOMRendererAPI
 
 	private function __applyStyle(displayObject:DisplayObject, setTransform:Bool, setAlpha:Bool, setClip:Bool):Void
 	{
-		#if (js && html5)
-		var style = displayObject.__style;
+		#if openfl_html5
+		var style = displayObject.__renderData.style;
 
 		// TODO: displayMatrix
 
@@ -179,7 +180,7 @@ class DOMRenderer extends DOMRendererAPI
 			{
 				case BITMAP:
 					__clearBitmap(cast object);
-				case DISPLAY_OBJECT_CONTAINER:
+				case DISPLAY_OBJECT_CONTAINER, MOVIE_CLIP:
 					__clearDisplayObjectContainer(cast object);
 				case DOM_ELEMENT:
 					__clearDOMElement(cast object);
@@ -212,9 +213,11 @@ class DOMRenderer extends DOMRendererAPI
 
 		__clearShape(cast container);
 
-		for (child in container.__children)
+		var child = container.__firstChild;
+		while (child != null)
 		{
 			__clearDisplayObject(child);
+			child = child.__nextSibling;
 		}
 	}
 
@@ -278,10 +281,10 @@ class DOMRenderer extends DOMRendererAPI
 		}
 	}
 
-	#if (js && html5)
+	#if openfl_html5
 	private function __initializeElement(displayObject:DisplayObject, element:Element):Void
 	{
-		var style = displayObject.__style = element.style;
+		var style = displayObject.__renderData.style = element.style;
 
 		style.setProperty("position", "absolute", null);
 		style.setProperty("top", "0", null);
@@ -410,12 +413,12 @@ class DOMRenderer extends DOMRendererAPI
 	{
 		__canvasRenderer.__updateCacheBitmap(bitmap, /*!__worldColorTransform.__isDefault ()*/ false);
 
-		if (bitmap.__cacheBitmap != null && !bitmap.__isCacheBitmapRender)
+		if (bitmap.__renderData.cacheBitmap != null && !bitmap.__renderData.isCacheBitmapRender)
 		{
 			__clearBitmap(bitmap);
-			bitmap.__cacheBitmap.stage = bitmap.stage;
+			bitmap.__renderData.cacheBitmap.stage = bitmap.stage;
 
-			DOMBitmap.render(bitmap.__cacheBitmap, this);
+			DOMBitmap.render(bitmap.__renderData.cacheBitmap, this);
 		}
 		else
 		{
@@ -432,7 +435,7 @@ class DOMRenderer extends DOMRendererAPI
 			{
 				case BITMAP:
 					__renderBitmap(cast object);
-				case DISPLAY_OBJECT_CONTAINER:
+				case DISPLAY_OBJECT_CONTAINER, MOVIE_CLIP:
 					__renderDisplayObjectContainer(cast object);
 				case DOM_ELEMENT:
 					__renderDOMElement(cast object);
@@ -491,36 +494,39 @@ class DOMRenderer extends DOMRendererAPI
 
 		__canvasRenderer.__updateCacheBitmap(container, /*!__worldColorTransform.__isDefault ()*/ false);
 
-		if (container.__cacheBitmap != null && !container.__isCacheBitmapRender)
+		if (container.__renderData.cacheBitmap != null && !container.__renderData.isCacheBitmapRender)
 		{
 			__clearDisplayObjectContainer(container);
-			container.__cacheBitmap.stage = container.stage;
+			container.__renderData.cacheBitmap.stage = container.stage;
 
-			DOMBitmap.render(container.__cacheBitmap, this);
+			DOMBitmap.render(container.__renderData.cacheBitmap, this);
 		}
 		else
 		{
 			DOMDisplayObject.render(container, this);
 
-			if (container.__cacheBitmap != null && !container.__isCacheBitmapRender) return;
+			if (container.__renderData.cacheBitmap != null && !container.__renderData.isCacheBitmapRender) return;
 
 			__pushMaskObject(container);
 
+			var child = container.__firstChild;
 			if (__stage != null)
 			{
-				for (child in container.__children)
+				while (child != null)
 				{
 					__renderDisplayObject(child);
 					child.__renderDirty = false;
+					child = child.__nextSibling;
 				}
 
 				container.__renderDirty = false;
 			}
 			else
 			{
-				for (child in container.__children)
+				while (child != null)
 				{
 					__renderDisplayObject(child);
+					child = child.__nextSibling;
 				}
 			}
 
@@ -557,12 +563,12 @@ class DOMRenderer extends DOMRendererAPI
 	{
 		__canvasRenderer.__updateCacheBitmap(shape, /*!__worldColorTransform.__isDefault ()*/ false);
 
-		if (shape.__cacheBitmap != null && !shape.__isCacheBitmapRender)
+		if (shape.__renderData.cacheBitmap != null && !shape.__renderData.isCacheBitmapRender)
 		{
 			__clearShape(shape);
-			shape.__cacheBitmap.stage = shape.stage;
+			shape.__renderData.cacheBitmap.stage = shape.stage;
 
-			DOMBitmap.render(shape.__cacheBitmap, this);
+			DOMBitmap.render(shape.__renderData.cacheBitmap, this);
 		}
 		else
 		{
@@ -585,7 +591,7 @@ class DOMRenderer extends DOMRendererAPI
 		{
 			if (button.__currentState.stage != button.stage)
 			{
-				button.__currentState.__setStageReference(button.stage);
+				button.__currentState.__setStageReferences(button.stage);
 			}
 
 			__renderDisplayObject(button.__currentState);
@@ -596,19 +602,19 @@ class DOMRenderer extends DOMRendererAPI
 
 	private function __renderTextField(textField:TextField):Void
 	{
-		#if (js && html5)
+		#if openfl_html5
 		textField.__domRender = true;
 		__canvasRenderer.__updateCacheBitmap(textField, textField.__forceCachedBitmapUpdate
 			|| /*!__worldColorTransform.__isDefault ()*/ false);
 		textField.__forceCachedBitmapUpdate = false;
 		textField.__domRender = false;
 
-		if (textField.__cacheBitmap != null && !textField.__isCacheBitmapRender)
+		if (textField.__renderData.cacheBitmap != null && !textField.__renderData.isCacheBitmapRender)
 		{
 			__clearTextField(textField);
-			textField.__cacheBitmap.stage = textField.stage;
+			textField.__renderData.cacheBitmap.stage = textField.stage;
 
-			DOMBitmap.render(textField.__cacheBitmap, this);
+			DOMBitmap.render(textField.__renderData.cacheBitmap, this);
 		}
 		else
 		{
@@ -634,12 +640,12 @@ class DOMRenderer extends DOMRendererAPI
 	{
 		__canvasRenderer.__updateCacheBitmap(tilemap, /*!__worldColorTransform.__isDefault ()*/ false);
 
-		if (tilemap.__cacheBitmap != null && !tilemap.__isCacheBitmapRender)
+		if (tilemap.__renderData.cacheBitmap != null && !tilemap.__renderData.isCacheBitmapRender)
 		{
 			__clearTilemap(tilemap);
-			tilemap.__cacheBitmap.stage = tilemap.stage;
+			tilemap.__renderData.cacheBitmap.stage = tilemap.stage;
 
-			DOMBitmap.render(tilemap.__cacheBitmap, this);
+			DOMBitmap.render(tilemap.__renderData.cacheBitmap, this);
 		}
 		else
 		{
@@ -731,10 +737,10 @@ class DOMRenderer extends DOMRendererAPI
 
 	private function __updateCacheBitmap(object:DisplayObject, force:Bool):Bool
 	{
-		var bitmap = object.__cacheBitmap;
+		var bitmap = object.__renderData.cacheBitmap;
 		var updated = __canvasRenderer.__updateCacheBitmap(object, force);
 
-		if (updated && bitmap != null && object.__cacheBitmap == null)
+		if (updated && bitmap != null && object.__renderData.cacheBitmap == null)
 		{
 			__clearBitmap(bitmap);
 		}
@@ -779,3 +785,4 @@ class DOMRenderer extends DOMRendererAPI
 		}
 	}
 }
+#end

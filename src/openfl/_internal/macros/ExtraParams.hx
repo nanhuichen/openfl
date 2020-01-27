@@ -38,7 +38,7 @@ class ExtraParams
 			}
 			#end
 
-			if (Context.defined("js") && !Context.defined("nodejs") && !Context.defined("lime"))
+			if (Context.defined("js") && (Context.defined("commonjs") || Context.defined("openfljs")))
 			{
 				var childPath = Context.resolvePath("openfl/external");
 
@@ -55,6 +55,27 @@ class ExtraParams
 					Compiler.addClassPath(openflPath + "/lib");
 				}
 			}
+		}
+
+		if (Context.defined("lime"))
+		{
+			if (Context.defined("lime_cairo")) Compiler.define("openfl-cairo");
+			if (Context.defined("lime_harfbuzz")) Compiler.define("openfl-harfbuzz");
+			if (Context.defined("lime_opengl") || Context.defined("lime_opengles") || Context.defined("lime_webgl"))
+			{
+				Compiler.define("openfl-gl");
+			}
+		}
+
+		if (Context.defined("js") && !Context.defined("nodejs"))
+		{
+			if (!Context.defined("lime"))
+			{
+				Compiler.define("howlerjs");
+			}
+			Compiler.define("openfl-html5");
+			Compiler.define("html5");
+			Compiler.define("openfl-gl");
 		}
 	}
 }

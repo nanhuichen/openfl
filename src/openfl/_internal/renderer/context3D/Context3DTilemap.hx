@@ -1,6 +1,7 @@
 package openfl._internal.renderer.context3D;
 
-import openfl._internal.utils.Float32Array;
+#if openfl_gl
+import openfl._internal.bindings.typedarray.Float32Array;
 import openfl.display.BitmapData;
 import openfl.display.BlendMode;
 import openfl.display.Shader;
@@ -130,10 +131,10 @@ class Context3DTilemap
 					tileRect = tile.__rect;
 					if (tileRect == null || tileRect.width <= 0 || tileRect.height <= 0) continue;
 
-					uvX = tileRect.x / bitmapData.__textureWidth;
-					uvY = tileRect.y / bitmapData.__textureHeight;
-					uvWidth = tileRect.right / bitmapData.__textureWidth;
-					uvHeight = tileRect.bottom / bitmapData.__textureHeight;
+					uvX = tileRect.x / bitmapData.__renderData.textureWidth;
+					uvY = tileRect.y / bitmapData.__renderData.textureHeight;
+					uvWidth = tileRect.right / bitmapData.__renderData.textureWidth;
+					uvHeight = tileRect.bottom / bitmapData.__renderData.textureHeight;
 				}
 				else
 				{
@@ -178,8 +179,9 @@ class Context3DTilemap
 		var rect = Rectangle.__pool.get();
 		var matrix = Matrix.__pool.get();
 		var parentTransform = tilemap.__renderTransform;
+		var worldAlpha = (tilemap.__filters == null) ? tilemap.__worldAlpha : 1.0;
 
-		buildBufferTileContainer(tilemap, tilemap.__group, renderer, parentTransform, tilemap.__tileset, tilemap.tileAlphaEnabled, tilemap.__worldAlpha,
+		buildBufferTileContainer(tilemap, tilemap.__group, renderer, parentTransform, tilemap.__tileset, tilemap.tileAlphaEnabled, worldAlpha,
 			tilemap.tileColorTransformEnabled, tilemap.__worldColorTransform, null, rect, matrix);
 
 		Rectangle.__pool.release(rect);
@@ -193,7 +195,6 @@ class Context3DTilemap
 		// if (tilemap.__tileArray == null || tilemap.__tileArray.length == 0) return;
 
 		// var renderer:Context3DRenderer = cast renderer.renderer;
-		// var gl = renderer.__gl;
 
 		// var shader = renderer.__maskShader;
 
@@ -270,3 +271,4 @@ class Context3DTilemap
 		// }
 	}
 }
+#end
