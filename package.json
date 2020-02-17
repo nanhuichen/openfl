@@ -1,6 +1,6 @@
 {
   "name": "openfl",
-  "version": "8.9.5",
+  "version": "8.9.6",
   "description": "A fast, productive library for 2D cross-platform development.",
   "keywords": [
     "openfl",
@@ -112,6 +112,6 @@
     "pako": "^1.0.6"
   },
   "haxeDependencies": {
-    "haxe": "3.4.4"
+    "haxe": "4.0.5"
   }
 }
