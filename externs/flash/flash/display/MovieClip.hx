@@ -1,5 +1,12 @@
 package flash.display;
 
+import openfl.display._internal.FlashRenderer;
+import openfl.display.Timeline;
+import openfl.events.Event;
+import openfl.events.MouseEvent;
+import openfl.utils.Object;
+import openfl.Lib;
+
 #if flash
 extern class MovieClip extends Sprite #if openfl_dynamic implements Dynamic #end
 {

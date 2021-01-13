@@ -1,0 +1,28 @@
+{
+	"compilerOptions": {
+		"target": "es6",
+		"baseUrl": "./src",
+		"paths": {
+			"openfl/*": ["./openfl/*"],
+			"pako": ["./../node_modules/pako/dist/pako.min.js"]
+		},
+		"lib": [ "dom", "es2017" ],
+		"sourceMap": true,
+		"assumeChangesOnlyAffectDirectDependencies": false,
+		"outDir": "./lib/openfl",
+		"declaration": true,
+		"declarationDir": "./lib/openfl",
+		// "preserveConstEnums": true,
+		"strictBindCallApply": true,
+		"strictFunctionTypes": true
+		// "strictPropertyInitialization": true,
+		// "strictNullChecks": true
+	},
+	"include": [
+		"./src/openfl/index.ts"
+	],
+	"exclude": [
+		"node_modules",
+		".npm"
+	]
+}

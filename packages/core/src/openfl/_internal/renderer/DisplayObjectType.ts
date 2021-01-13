@@ -1,0 +1,16 @@
+export enum DisplayObjectType
+{
+	BITMAP,
+	DISPLAY_OBJECT,
+	DISPLAY_OBJECT_CONTAINER,
+	DOM_ELEMENT,
+	MOVIE_CLIP,
+	SHAPE,
+	SIMPLE_BUTTON,
+	TEXTFIELD,
+	TILEMAP,
+	VIDEO,
+	CUSTOM
+}
+
+export default DisplayObjectType;

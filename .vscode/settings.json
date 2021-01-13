@@ -2,6 +2,11 @@
     "[haxe]": {
         "editor.formatOnSave": true,
         "files.eol": "\n",
+        "files.insertFinalNewline": true,
+    },
+    "[typescript]": {
+        "editor.formatOnSave": true,
+        "files.eol": "\n",
         "files.insertFinalNewline": true
     },
     "codedox": {
@@ -21,6 +26,10 @@
         [ "scripts/completion.hxml" ],
         [ "-main", "TestMain", "-cp", "src", "-cp", "test/haxelib/unit/src", "-lib", "munit", "-D", "openfl-unit-testing" ]
     ],
-    "haxe.enableServerView": true,
-    "lime.projectFile": "test/haxelib/functional/project.xml"
+    "haxe.enableCompletionCacheWarning": false,
+    "lime.projectFile": "test/haxelib/functional/project.xml",
+    "typescript.format.enable": true,
+    "typescript.format.placeOpenBraceOnNewLineForFunctions": true,
+    "typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis": false,
+    "typescript.format.placeOpenBraceOnNewLineForControlBlocks": true
 }
